@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Bíblia ACF Offline</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #222222;
+            --header-bg: #f4f4f4;
+            --primary: #2563eb;
+            --primary-text: #ffffff;
+            --border: #dddddd;
+            --card-bg: #f8fafc;
+            --danger: #ef4444;
+            --success: #10b981;
+            
+            /* CORES DE MARCAÇÃO */
+            --mark-yellow: #fef08a;
+            --mark-green: #86efac;
+            --mark-blue: #93c5fd;
+            --mark-pink: #f9a8d4;
+
+            /* TAMANHO DA FONTE BASE (Padrão) */
+            --font-size-base: 1.15rem;
+        }
+
+        /* TAMANHOS DE FONTE ALTERNATIVOS */
+        body.font-large {
+            --font-size-base: 1.4rem;
+        }
+        body.font-xlarge {
+            --font-size-base: 1.7rem;
+        }
+
+        body.dark {
+            --bg-color: #0f172a;
+            --text-color: #e2e8f0;
+            --header-bg: #1e293b;
+            --primary: #60a5fa;
+            --primary-text: #0f172a;
+            --border: #334155;
+            --card-bg: #1e293b;
+            
+            /* CORES DE MARCAÇÃO (MODO ESCURO) */
+            --mark-yellow: #ca8a04;
+            --mark-green: #16a34a;
+            --mark-blue: #2563eb;
+            --mark-pink: #db2777;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        header {
+            background: var(--header-bg);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 { margin: 0; font-size: 1.1rem; font-weight: 700; }
+
+        .controls { display: flex; gap: 8px; }
+
+        select, button {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-size: 0.95rem;
+            flex: 1;
+        }
+
+        button {
+            background: var(--primary);
+            color: var(--primary-text);
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            flex: 0 0 auto;
+            padding: 10px 16px;
+        }
+
+        button:active { opacity: 0.8; }
+
+        #statusBar {
+            text-align: center;
+            padding: 10px;
+            font-weight: bold;
+            display: none;
+        }
+
+        #statusBar.loading { background: var(--primary); color: var(--primary-text); }
+        #statusBar.error { background: var(--danger); color: white; }
+        #statusBar.success { background: var(--success); color: white; }
+
+        .vd-card {
+            background: var(--card-bg);
+            margin: 12px 16px;
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .vd-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .vd-text {
+            font-size: calc(var(--font-size-base) * 1.1); /* Escala com o base */
+            line-height: 1.6;
+            font-style: italic;
+            margin-bottom: 12px;
+        }
+
+        .vd-ref {
+            text-align: right;
+            font-weight: bold;
+            margin-bottom: 16px;
+            color: var(--primary);
+            font-size: var(--font-size-base);
+        }
+
+        .vd-controls { display: flex; gap: 10px; }
+
+        .vd-btn {
+            padding: 10px;
+            border-radius: 20px;
+            border: none;
+            font-weight: bold;
+            flex: 1;
+            font-size: 0.95rem;
+        }
+
+        .vd-btn-play { background: var(--primary); color: var(--primary-text); }
+        .vd-btn-stop { background: var(--danger); color: white; }
+
+        main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            line-height: 1.8;
+            font-size: var(--font-size-base); /* Aplica a variável */
+        }
+
+        .chapter-title {
+            text-align: center;
+            font-size: calc(var(--font-size-base) * 1.3);
+            margin-bottom: 20px;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .chapter-content { text-align: justify; }
+
+        .verse {
+            cursor: pointer;
+            padding: 2px 0;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .verse:hover {
+            background: rgba(37, 99, 235, 0.1);
+        }
+
+        .verse-num {
+            font-size: calc(var(--font-size-base) * 0.65); /* Escala proporcional */
+            vertical-align: super;
+            color: var(--primary);
+            margin-right: 4px;
+            font-weight: bold;
+        }
+
+        /* CORES DE MARCAÇÃO */
+        .verse.marked-yellow { background: var(--mark-yellow); padding: 2px 4px; border-radius: 4px; }
+        .verse.marked-green { background: var(--mark-green); padding: 2px 4px; border-radius: 4px; }
+        .verse.marked-blue { background: var(--mark-blue); padding: 2px 4px; border-radius: 4px; }
+        .verse.marked-pink { background: var(--mark-pink); padding: 2px 4px; border-radius: 4px; }
+
+        /* MENU DE CORES (POPUP) */
+        .color-menu {
+            position: fixed;
+            background: var(--card-bg);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .color-menu.show { display: flex; }
+
+        .color-btn {
+            width: 50px;
+            height: 50px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s;
+        }
+
+        .color-btn:active { transform: scale(0.9); }
+        .color-btn.yellow { background: var(--mark-yellow); }
+        .color-btn.green { background: var(--mark-green); }
+        .color-btn.blue { background: var(--mark-blue); }
+        .color-btn.pink { background: var(--mark-pink); }
+        .color-btn.remove { background: var(--danger); color: white; font-size: 1.2rem; }
+
+        footer {
+            background: var(--header-bg);
+            padding: 12px 16px;
+            display: flex;
+            gap: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        footer button {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.95rem;
+        }
+
+        .reload-btn {
+            background: var(--danger) !important;
+            color: white !important;
+            margin: 10px 16px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="statusBar"></div>
+
+    <header>
+        <div class="header-top">
+            <h1>📖 Bíblia ACF</h1>
+            <div class="controls" style="flex: 0 0 auto; gap: 8px;">
+                <button id="fontSizeToggle" style="padding: 8px 12px;" title="Tamanho da fonte">🔤</button>
+                <button id="themeToggle" style="padding: 8px 12px;">🌙</button>
+            </div>
+        </div>
+        <div class="controls">
+            <select id="bookSelect"><option>Carregando...</option></select>
+            <select id="chapterSelect"><option>Cap.</option></select>
+        </div>
+    </header>
+
+    <button class="reload-btn" id="reloadBtn" onclick="forcarRecarregar()">🔄 Recarregar Bíblia</button>
+
+    <div class="vd-card">
+        <div class="vd-header">
+            <span>✨ Versículo do Dia</span>
+            <span id="vdStatus" style="font-size: 0.8rem; opacity: 0.7;"></span>
+        </div>
+        <p class="vd-text" id="vdTexto">Carregando...</p>
+        <p class="vd-ref" id="vdRef"></p>
+        <div class="vd-controls">
+            <button class="vd-btn vd-btn-play" id="vdBtnPlay" onclick="falarVersiculo()">🔊 Ler</button>
+            <button class="vd-btn vd-btn-stop" id="vdBtnStop" onclick="pararVoz()" disabled>⏹ Parar</button>
+        </div>
+    </div>
+
+    <main>
+        <div class="chapter-title" id="chapterTitle">Bem-vindo</div>
+        <div class="chapter-content" id="chapterContent">
+            Aguarde o carregamento...
+        </div>
+    </main>
+
+    <!-- MENU DE CORES -->
+    <div class="color-menu" id="colorMenu">
+        <div class="color-btn yellow" onclick="marcarVersiculo('yellow')">🟡</div>
+        <div class="color-btn green" onclick="marcarVersiculo('green')">🟢</div>
+        <div class="color-btn blue" onclick="marcarVersiculo('blue')">🔵</div>
+        <div class="color-btn pink" onclick="marcarVersiculo('pink')">🟣</div>
+        <div class="color-btn remove" onclick="removerMarcacao()">✖</div>
+    </div>
+
+    <footer>
+        <button id="prevBtn">⬅ Anterior</button>
+        <button id="nextBtn">Próximo ➡</button>
+    </footer>
+
+    <script>
+        const NOMES_LIVROS = [
+            "Gênesis", "Êxodo", "Levítico", "Números", "Deuteronômio",
+            "Josué", "Juízes", "Rute", "1 Samuel", "2 Samuel",
+            "1 Reis", "2 Reis", "1 Crônicas", "2 Crônicas", "Esdras",
+            "Neemias", "Ester", "Jó", "Salmos", "Provérbios",
+            "Eclesiastes", "Cantares", "Isaías", "Jeremias", "Lamentações",
+            "Ezequiel", "Daniel", "Oséias", "Joel", "Amós",
+            "Obadias", "Jonas", "Miquéias", "Naum", "Habacuque",
+            "Sofonias", "Ageu", "Zacarias", "Malaquias", "Mateus",
+            "Marcos", "Lucas", "João", "Atos", "Romanos",
+            "1 Coríntios", "2 Coríntios", "Gálatas", "Efésios", "Filipenses",
+            "Colossenses", "1 Tessalonicenses", "2 Tessalonicenses", "1 Timóteo", "2 Timóteo",
+            "Tito", "Filemom", "Hebreus", "Tiago", "1 Pedro",
+            "2 Pedro", "1 João", "2 João", "3 João", "Judas", "Apocalipse"
+        ];
+
+        const GITHUB_URL = "https://raw.githubusercontent.com/thiagobodruk/biblia/master/json/acf.json";
+        
+        let bibleData = [];
+        let currentBookIdx = 0;
+        let currentChapterIdx = 0;
+        let storageType = 'none';
+        let selectedVerseElement = null;
+        let selectedVerseKey = '';
+
+        const bookSelect = document.getElementById('bookSelect');
+        const chapterSelect = document.getElementById('chapterSelect');
+        const chapterTitle = document.getElementById('chapterTitle');
+        const chapterContent = document.getElementById('chapterContent');
+        const statusBar = document.getElementById('statusBar');
+        const reloadBtn = document.getElementById('reloadBtn');
+        const colorMenu = document.getElementById('colorMenu');
+
+        // ==========================================
+        // FUNÇÕES DE STATUS
+        // ==========================================
+        function showStatus(msg, type = 'loading') {
+            statusBar.textContent = msg;
+            statusBar.className = type;
+            statusBar.style.display = 'block';
+        }
+
+        function hideStatus() {
+            statusBar.style.display = 'none';
+        }
+
+        // ==========================================
+        // DETECÇÃO DE ARMAZENAMENTO
+        // ==========================================
+        function testarIndexedDB() {
+            return new Promise((resolve) => {
+                try {
+                    if (!window.indexedDB) { resolve(false); return; }
+                    const request = indexedDB.open("TestDB", 1);
+                    request.onsuccess = () => resolve(true);
+                    request.onerror = () => resolve(false);
+                    request.onblocked = () => resolve(false);
+                } catch (e) { resolve(false); }
+            });
+        }
+
+        async function salvarDados(dados) {
+            if (storageType === 'indexeddb') {
+                try {
+                    const db = await abrirIndexedDB();
+                    await salvarNoIndexedDB(db, dados);
+                    return true;
+                } catch (e) { storageType = 'localStorage'; }
+            }
+            try {
+                localStorage.setItem('bible_acf_data', JSON.stringify(dados));
+                return true;
+            } catch (e) { return false; }
+        }
+
+        async function carregarDados() {
+            if (storageType === 'indexeddb') {
+                try {
+                    const db = await abrirIndexedDB();
+                    const dados = await lerDoIndexedDB(db);
+                    if (dados && dados.length === 66) return dados;
+                } catch (e) {}
+            }
+            try {
+                const json = localStorage.getItem('bible_acf_data');
+                if (json) {
+                    const dados = JSON.parse(json);
+                    if (dados && dados.length === 66) return dados;
+                }
+            } catch (e) {}
+            return null;
+        }
+
+        function abrirIndexedDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open("BibliaACF", 1);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains("dados")) db.createObjectStore("dados");
+                };
+                request.onsuccess = (e) => resolve(e.target.result);
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        function salvarNoIndexedDB(db, dados) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction("dados", "readwrite");
+                const store = tx.objectStore("dados");
+                store.put(dados, "bible");
+                tx.oncomplete = () => resolve();
+                tx.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        function lerDoIndexedDB(db) {
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction("dados", "readonly");
+                const store = tx.objectStore("dados");
+                const request = store.get("bible");
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = (e) => reject(e.target.error);
+            });
+        }
+
+        // ==========================================
+        // MARCAÇÃO DE VERSÍCULOS
+        // ==========================================
+        function getMarcacoes() {
+            const json = localStorage.getItem('bible_marcacoes');
+            return json ? JSON.parse(json) : {};
+        }
+
+        function salvarMarcacoes(marcacoes) {
+            localStorage.setItem('bible_marcacoes', JSON.stringify(marcacoes));
+        }
+
+        function mostrarMenuCores(verseElement, verseKey) {
+            selectedVerseElement = verseElement;
+            selectedVerseKey = verseKey;
+
+            const rect = verseElement.getBoundingClientRect();
+            const menuWidth = 74;
+            const menuHeight = 300;
+
+            let left = rect.left + (rect.width / 2) - (menuWidth / 2);
+            let top = rect.bottom + 10;
+
+            if (left < 10) left = 10;
+            if (left + menuWidth > window.innerWidth - 10) left = window.innerWidth - menuWidth - 10;
+            if (top + menuHeight > window.innerHeight - 10) top = rect.top - menuHeight - 10;
+
+            colorMenu.style.left = left + 'px';
+            colorMenu.style.top = top + 'px';
+            colorMenu.classList.add('show');
+        }
+
+        function esconderMenuCores() {
+            colorMenu.classList.remove('show');
+            selectedVerseElement = null;
+            selectedVerseKey = '';
+        }
+
+        function marcarVersiculo(cor) {
+            if (!selectedVerseElement || !selectedVerseKey) return;
+            const marcacoes = getMarcacoes();
+            marcacoes[selectedVerseKey] = cor;
+            salvarMarcacoes(marcacoes);
+            selectedVerseElement.classList.remove('marked-yellow', 'marked-green', 'marked-blue', 'marked-pink');
+            selectedVerseElement.classList.add(`marked-${cor}`);
+            esconderMenuCores();
+        }
+
+        function removerMarcacao() {
+            if (!selectedVerseElement || !selectedVerseKey) return;
+            const marcacoes = getMarcacoes();
+            delete marcacoes[selectedVerseKey];
+            salvarMarcacoes(marcacoes);
+            selectedVerseElement.classList.remove('marked-yellow', 'marked-green', 'marked-blue', 'marked-pink');
+            esconderMenuCores();
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!colorMenu.contains(e.target) && !e.target.classList.contains('verse')) {
+                esconderMenuCores();
+            }
+        });
+
+        // ==========================================
+        // TAMANHO DA FONTE
+        // ==========================================
+        function loadFontSize() {
+            const savedSize = localStorage.getItem('font_size') || 'normal';
+            document.body.classList.remove('font-large', 'font-xlarge');
+            
+            if (savedSize === 'large') document.body.classList.add('font-large');
+            else if (savedSize === 'xlarge') document.body.classList.add('font-xlarge');
+            
+            updateFontSizeIcon(savedSize);
+        }
+
+        function toggleFontSize() {
+            const currentSize = localStorage.getItem('font_size') || 'normal';
+            let newSize = 'normal';
+            
+            if (currentSize === 'normal') newSize = 'large';
+            else if (currentSize === 'large') newSize = 'xlarge';
+            else newSize = 'normal'; // Ciclo de volta ao normal
+
+            localStorage.setItem('font_size', newSize);
+            
+            document.body.classList.remove('font-large', 'font-xlarge');
+            if (newSize === 'large') document.body.classList.add('font-large');
+            if (newSize === 'xlarge') document.body.classList.add('font-xlarge');
+            
+            updateFontSizeIcon(newSize);
+        }
+
+        function updateFontSizeIcon(size) {
+            const btn = document.getElementById('fontSizeToggle');
+            if (size === 'normal') btn.textContent = '🔤';
+            else if (size === 'large') btn.textContent = '🔤+';
+            else if (size === 'xlarge') btn.textContent = '🔤++';
+        }
+
+        // ==========================================
+        // INICIALIZAÇÃO
+        // ==========================================
+        async function init() {
+            loadTheme();
+            loadFontSize(); // Carrega preferência de tamanho
+            carregarVersiculoDiario();
+
+            showStatus("Verificando armazenamento...", 'loading');
+            const indexedDBFunciona = await testarIndexedDB();
+            storageType = indexedDBFunciona ? 'indexeddb' : 'localStorage';
+
+            showStatus(`Usando: ${storageType === 'indexeddb' ? 'IndexedDB' : 'LocalStorage'}`, 'loading');
+
+            const dadosSalvos = await carregarDados();
+            if (dadosSalvos) {
+                bibleData = dadosSalvos;
+                showStatus("✅ Bíblia carregada", 'success');
+                setTimeout(hideStatus, 2000);
+                setupUI();
+                return;
+            }
+
+            await baixarBible();
+        }
+
+        async function baixarBible() {
+            showStatus("⏳ Baixando Bíblia...", 'loading');
+            reloadBtn.style.display = 'none';
+
+            try {
+                const response = await fetch(GITHUB_URL);
+                if (!response.ok) throw new Error("Servidor indisponível");
+                
+                const data = await response.json();
+                if (!Array.isArray(data) || data.length < 66) throw new Error("Dados inválidos");
+
+                const salvou = await salvarDados(data);
+                if (!salvou) throw new Error("Não foi possível salvar");
+
+                bibleData = data;
+                showStatus("✅ Bíblia baixada com sucesso!", 'success');
+                setTimeout(hideStatus, 3000);
+                setupUI();
+            } catch (error) {
+                console.error("Erro:", error);
+                showStatus(`❌ Erro: ${error.message}`, 'error');
+                reloadBtn.style.display = 'block';
+            }
+        }
+
+        function forcarRecarregar() {
+            try { localStorage.removeItem('bible_acf_data'); } catch (e) {}
+            baixarBible();
+        }
+
+        function setupUI() {
+            bookSelect.innerHTML = '';
+            bibleData.forEach((book, idx) => {
+                const option = document.createElement('option');
+                option.value = idx;
+                option.textContent = NOMES_LIVROS[idx] || book.abbrev;
+                bookSelect.appendChild(option);
+            });
+
+            const lastRead = localStorage.getItem('last_read_pos');
+            if (lastRead) {
+                try {
+                    const pos = JSON.parse(lastRead);
+                    if (pos.book < bibleData.length) {
+                        currentBookIdx = pos.book;
+                        currentChapterIdx = pos.chapter;
+                    }
+                } catch(e) {}
+            }
+
+            bookSelect.value = currentBookIdx;
+            updateChapters();
+            renderChapter();
+        }
+
+        // ==========================================
+        // NAVEGAÇÃO
+        // ==========================================
+        bookSelect.addEventListener('change', (e) => {
+            currentBookIdx = parseInt(e.target.value);
+            currentChapterIdx = 0;
+            updateChapters();
+            renderChapter();
+        });
+
+        chapterSelect.addEventListener('change', (e) => {
+            currentChapterIdx = parseInt(e.target.value);
+            renderChapter();
+        });
+
+        function updateChapters() {
+            chapterSelect.innerHTML = '';
+            const chapters = bibleData[currentBookIdx].chapters;
+            chapters.forEach((_, idx) => {
+                const option = document.createElement('option');
+                option.value = idx;
+                option.textContent = `Cap. ${idx + 1}`;
+                chapterSelect.appendChild(option);
+            });
+            chapterSelect.value = currentChapterIdx;
+        }
+
+        function renderChapter() {
+            const book = bibleData[currentBookIdx];
+            const chapterNum = currentChapterIdx + 1;
+            const nomeLivro = NOMES_LIVROS[currentBookIdx] || book.abbrev;
+
+            chapterTitle.textContent = `${nomeLivro} ${chapterNum}`;
+
+            const verses = book.chapters[currentChapterIdx];
+            const marcacoes = getMarcacoes();
+            let html = '';
+
+            verses.forEach((verseText, vIdx) => {
+                const verseKey = `${currentBookIdx}-${currentChapterIdx}-${vIdx}`;
+                const cor = marcacoes[verseKey];
+                const classeCor = cor ? `marked-${cor}` : '';
+                html += `<span class="verse ${classeCor}" data-verse-key="${verseKey}"><span class="verse-num">${vIdx + 1}</span>${verseText}</span> `;
+            });
+            
+            chapterContent.innerHTML = html;
+
+            document.querySelectorAll('.verse').forEach(verse => {
+                verse.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const verseKey = verse.getAttribute('data-verse-key');
+                    mostrarMenuCores(verse, verseKey);
+                });
+            });
+
+            localStorage.setItem('last_read_pos', JSON.stringify({
+                book: currentBookIdx,
+                chapter: currentChapterIdx
+            }));
+
+            document.querySelector('main').scrollTop = 0;
+        }
+
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            if (currentChapterIdx > 0) {
+                currentChapterIdx--;
+            } else if (currentBookIdx > 0) {
+                currentBookIdx--;
+                currentChapterIdx = bibleData[currentBookIdx].chapters.length - 1;
+            }
+            bookSelect.value = currentBookIdx;
+            updateChapters();
+            renderChapter();
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            const maxChapters = bibleData[currentBookIdx].chapters.length;
+            if (currentChapterIdx < maxChapters - 1) {
+                currentChapterIdx++;
+            } else if (currentBookIdx < bibleData.length - 1) {
+                currentBookIdx++;
+                currentChapterIdx = 0;
+            }
+            bookSelect.value = currentBookIdx;
+            updateChapters();
+            renderChapter();
+        });
+
+        // ==========================================
+        // TEMA
+        // ==========================================
+        function loadTheme() {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark');
+                document.getElementById('themeToggle').textContent = '☀️';
+            }
+        }
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+            const isDark = document.body.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('themeToggle').textContent = isDark ? '☀️' : '🌙';
+        });
+
+        // ==========================================
+        // VERSÍCULO DIÁRIO E VOZ
+        // ==========================================
+        const VERSICULOS = [
+            { ref: "João 3:16", text: "Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito, para que todo aquele que nele crê não pereça, mas tenha a vida eterna." },
+            { ref: "Salmos 23:1", text: "O Senhor é o meu pastor; nada me faltará." },
+            { ref: "Filipenses 4:13", text: "Posso todas as coisas naquele que me fortalece." },
+            { ref: "Provérbios 3:5", text: "Confia no Senhor de todo o teu coração, e não te estribes no teu próprio entendimento." },
+            { ref: "Isaías 41:10", text: "Não temas, porque eu sou contigo; não te assombres, porque eu sou teu Deus; eu te fortaleço, e te ajudo, e te sustento com a destra da minha justiça." },
+            { ref: "Romanos 8:28", text: "E sabemos que todas as coisas contribuem juntamente para o bem daqueles que amam a Deus." },
+            { ref: "Salmos 119:105", text: "Lâmpada para os meus pés é tua palavra, e luz para o meu caminho." },
+            { ref: "Josué 1:9", text: "Não to mandei eu? Esforça-te, e tem bom ânimo; não temas, nem te espantes; porque o Senhor teu Deus é contigo." },
+            { ref: "Mateus 11:28", text: "Vinde a mim, todos os que estais cansados e oprimidos, e eu vos aliviarei." },
+            { ref: "Salmos 46:1", text: "Deus é o nosso refúgio e fortaleza, socorro bem presente na angústia." }
+        ];
+
+        function carregarVersiculoDiario() {
+            const hoje = new Date();
+            const inicioAno = new Date(hoje.getFullYear(), 0, 0);
+            const diaDoAno = Math.floor((hoje - inicioAno) / (1000 * 60 * 60 * 24));
+            const v = VERSICULOS[diaDoAno % VERSICULOS.length];
+            document.getElementById('vdTexto').innerText = `"${v.text}"`;
+            document.getElementById('vdRef').innerText = `— ${v.ref}`;
+        }
+
+        let utterance = null;
+        let ptVoice = null;
+
+        function configurarVozes() {
+            const vozes = window.speechSynthesis.getVoices();
+            ptVoice = vozes.find(v => v.lang.includes('pt')) || vozes[0];
+        }
+
+        if ('speechSynthesis' in window) {
+            configurarVozes();
+            window.speechSynthesis.onvoiceschanged = configurarVozes;
+        }
+
+        function falarVersiculo() {
+            if (!('speechSynthesis' in window)) return alert("Navegador não suporta voz.");
+            pararVoz();
+            const texto = document.getElementById('vdTexto').innerText;
+            utterance = new SpeechSynthesisUtterance(texto);
+            if (ptVoice) utterance.voice = ptVoice;
+            utterance.lang = 'pt-BR';
+            utterance.rate = 0.95;
+            document.getElementById('vdBtnPlay').disabled = true;
+            document.getElementById('vdBtnStop').disabled = false;
+            document.getElementById('vdStatus').innerText = "🔊";
+            utterance.onend = () => {
+                document.getElementById('vdBtnPlay').disabled = false;
+                document.getElementById('vdBtnStop').disabled = true;
+                document.getElementById('vdStatus').innerText = "";
+            };
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function pararVoz() {
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+            document.getElementById('vdBtnPlay').disabled = false;
+            document.getElementById('vdBtnStop').disabled = true;
+            document.getElementById('vdStatus').innerText = "";
+        }
+
+        // Event Listeners Novos
+        document.getElementById('fontSizeToggle').addEventListener('click', toggleFontSize);
+
+        // Iniciar
+        init();
+    </script>
+</body>
+</html>
