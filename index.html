@@ -2,685 +2,947 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bíblia JFA — Offline</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>📖 Bíblia Multi-API — Offline</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system,sans-serif}
+*{margin:0; padding:0; box-sizing:border-box; font-family:system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color:transparent;}
 :root{
-  --bg:#fff;--card:#f8fafc;--text:#1e293b;--text2:#475569;
-  --p:#2563eb;--p-light:#dbeafe;--s:#10b981;--a:#f59e0b;--g:#94a3b8;
-  --b:#e2e8f0;--shadow:0 2px 12px rgba(0,0,0,.08);--r:16px;
-  --fs:1.05rem
+  --bg:#f8fafc; --card:#ffffff; --text:#1e293b; --p:#854d0e; --g:#64748b; 
+  --b:#e2e8f0; --r:12px; --shadow:0 2px 8px rgba(0,0,0,.08);
+  --active:#fef3c7; --sucesso:#10b981; --erro:#ef4444;
+  --hl-1: #fef08a; --hl-2: #bbf7d0; --hl-3: #bfdbfe; --hl-4: #fbcfe8; --hl-5: #fed7aa;
 }
 .dark{
-  --bg:#0f172a;--card:#1e293b;--text:#f1f5f9;--text2:#cbd5e1;
-  --p:#60a5fa;--p-light:#1e3a5f;--b:#334155;--shadow:0 2px 12px rgba(0,0,0,.3)
+  --bg:#1a120b; --card:#261c13; --text:#f0e6d8; --b:#4a3528;
+  --active:#423020;
+  --hl-1: rgba(254, 240, 138, 0.25); --hl-2: rgba(187, 247, 208, 0.25); 
+  --hl-3: rgba(191, 219, 254, 0.25); --hl-4: rgba(251, 207, 232, 0.25); --hl-5: rgba(254, 215, 170, 0.25);
 }
-body{background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:90px;transition:all .35s}
-header{position:sticky;top:0;background:var(--card);padding:14px 20px;box-shadow:var(--shadow);z-index:100;display:flex;align-items:center;justify-content:space-between}
-header h1{font-size:1.15rem;font-weight:700;display:flex;align-items:center;gap:8px}
-header button{background:none;border:none;font-size:1.4rem;cursor:pointer;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;transition:background .2s}
-header button:hover{background:var(--b)}
-.container{max-width:720px;margin:0 auto;padding:0 20px 20px}
-.aviso{background:var(--p-light);border-left:4px solid var(--p);padding:14px 18px;margin:16px 0;border-radius:12px;font-size:.95rem;line-height:1.6}
-.aviso span{font-weight:600;color:var(--p)}
-.btn{width:100%;padding:16px;border-radius:var(--r);border:none;font-size:1rem;font-weight:600;cursor:pointer;transition:all .2s;margin-bottom:12px}
-.btn:active{transform:scale(.98)}
-.btn:disabled{opacity:.6;cursor:wait}
-.btn-github{background:#24292e;color:#fff;box-shadow:0 4px 12px rgba(36,41,46,.25)}
-.dark .btn-github{background:#f1f5f9;color:#0f172a}
-.btn-local{background:var(--p);color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.25)}
-.btn-clear{background:var(--b);color:var(--text)}
-.status{text-align:center;padding:12px;border-radius:8px;background:var(--b);color:var(--text2);font-size:.9rem;margin-bottom:20px;line-height:1.5}
-.status.ok{background:rgba(16,185,129,.15);color:var(--s);border:1px solid var(--s)}
-.status.cache{background:rgba(96,165,250,.15);color:var(--p);border:1px solid var(--p)}
-.tabs{display:flex;gap:10px;margin-bottom:20px;overflow-x:auto;padding-bottom:4px}
-.tab{padding:10px 18px;border-radius:24px;border:none;background:transparent;color:var(--g);font-weight:600;cursor:pointer;white-space:nowrap;transition:all .25s;font-size:.95rem}
-.tab.active{background:var(--p);color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.25)}
-.book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:10px}
-.book-btn{padding:12px 8px;border-radius:var(--r);border:2px solid var(--b);background:var(--card);color:var(--text);font-size:.85rem;cursor:pointer;transition:all .25s;display:flex;flex-direction:column;align-items:center;gap:4px}
-.book-btn:hover{border-color:var(--p);transform:translateY(-3px);box-shadow:var(--shadow);background:var(--p-light)}
-.book-btn .num{font-weight:800;font-size:.95rem;color:var(--p)}
-.book-btn .nome{font-size:.8rem;text-align:center;line-height:1.2}
-.book-btn.off{border-style:dashed;border-color:var(--g);opacity:.6}
-.book-btn.on{border-color:var(--s);background:rgba(16,185,129,.05)}
-.book-btn.on .num{color:var(--s)}
-.top-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px}
-.top-bar button{padding:10px 16px;border-radius:var(--r);border:none;cursor:pointer;font-weight:600;font-size:.9rem;transition:all .2s;display:flex;align-items:center;gap:6px}
-.btn-back{background:var(--b);color:var(--text)}
-.btn-fav{background:var(--a);color:#fff}
-.btn-fav.active{background:#f97316;box-shadow:0 0 0 3px rgba(249,115,22,.3)}
+body{background:var(--bg); color:var(--text); min-height:100vh; padding-bottom:90px; transition:background .3s,color .3s;}
 
-/* NOVO: Barra de ferramentas de leitura */
-.read-tools{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;background:var(--card);padding:10px;border-radius:var(--r);box-shadow:var(--shadow)}
-.tool-btn{padding:8px 12px;border-radius:10px;border:2px solid var(--b);background:var(--bg);color:var(--text);cursor:pointer;font-weight:600;font-size:.85rem;transition:all .2s;display:flex;align-items:center;gap:4px}
-.tool-btn:hover{border-color:var(--p);background:var(--p-light)}
-.tool-btn.active{background:var(--p);color:#fff;border-color:var(--p)}
-.tool-btn.playing{background:var(--s);color:#fff;border-color:var(--s);animation:pulse 1.5s infinite}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 8px rgba(16,185,129,0)}}
+header{position:sticky; top:0; background:var(--card); padding:14px 16px; box-shadow:var(--shadow); z-index:100; display:flex; align-items:center; justify-content:space-between;}
+header h1{font-size:1.1rem; font-weight:700; color:var(--p);}
+.header-btns{display:flex; gap:8px;}
+header button{background:none; border:none; font-size:1.2rem; cursor:pointer; padding:6px 10px; border-radius:6px;}
 
-.font-sizes{display:flex;gap:4px;margin-left:auto}
-.font-sizes button{padding:6px 10px;border-radius:8px;border:2px solid var(--b);background:var(--bg);color:var(--text);cursor:pointer;font-weight:700;transition:all .2s}
-.font-sizes button.active{background:var(--p);color:#fff;border-color:var(--p)}
-.font-sizes button[data-fs="p"]{font-size:.85rem}
-.font-sizes button[data-fs="m"]{font-size:1rem}
-.font-sizes button[data-fs="g"]{font-size:1.2rem}
-.font-sizes button[data-fs="gg"]{font-size:1.4rem}
+.info-bar{background:var(--active); padding:10px 16px; font-size:.9rem; color:var(--p); text-align:center; border-bottom:1px solid var(--b); line-height:1.5;}
+.status-api{font-size:.8rem; margin-top:4px; display:flex; flex-wrap:wrap; gap:6px; justify-content:center;}
+.api-tag{padding:2px 8px; border-radius:12px; background:var(--b); font-size:.75rem;}
+.api-tag.ok{background:rgba(16,185,129,.15); color:#059669;}
+.api-tag.busy{background:rgba(245,158,11,.15); color:#d97706;}
+.api-tag.fail{background:rgba(239,68,68,.15); color:#dc2626;}
 
-.chapter-nav{display:flex;justify-content:space-between;align-items:center;margin:24px 0}
-.chapter-nav button{padding:12px 22px;border-radius:var(--r);border:none;background:var(--p);color:#fff;cursor:pointer;font-size:1rem;font-weight:600;transition:all .2s;box-shadow:0 4px 12px rgba(37,99,235,.25)}
-.chapter-nav button:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
-.chapter-nav button:active{transform:scale(.96)}
-.ch-title{font-weight:800;font-size:1.1rem;color:var(--p)}
+.tabs{display:flex; gap:8px; padding:12px 16px; overflow-x:auto; border-bottom:1px solid var(--b); background:var(--card);}
+.tab{padding:8px 18px; border-radius:20px; border:none; background:transparent; color:var(--g); font-weight:600; cursor:pointer; white-space:nowrap; font-size:.95rem;}
+.tab.active{background:var(--p); color:#fff;}
 
-.verse{padding:14px 12px;margin:6px 0;border-radius:10px;cursor:pointer;transition:all .2s;line-height:1.8;font-size:var(--fs);border-left:4px solid transparent;word-wrap:break-word;white-space:pre-wrap}
-.verse:hover{background:var(--p-light);border-left-color:var(--p)}
-.verse-num{font-weight:800;color:var(--p);margin-right:12px;font-size:.95em;display:inline-block;min-width:1.5em}
-.verse.fav{border-left-color:var(--a)!important}
-.verse.yellow{background:rgba(245,158,11,.25);border-left-color:#f59e0b!important}
-.verse.green{background:rgba(5,150,105,.25);border-left-color:#059669!important}
-.verse.blue{background:rgba(37,99,235,.25);border-left-color:#2563eb!important}
-.verse.red{background:rgba(220,38,38,.25);border-left-color:#dc2626!important}
-.verse.purple{background:rgba(124,58,237,.25);border-left-color:#7c3aed!important}
-/* NOVO: Versículo sendo lido em áudio */
-.verse.reading{background:var(--p-light)!important;border-left-color:var(--p)!important;transform:scale(1.02);box-shadow:0 4px 16px rgba(37,99,235,.2)}
+.book-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(110px,1fr)); gap:10px; padding:16px; max-width:700px; margin:0 auto;}
+.book-btn{padding:12px 8px; border-radius:var(--r); border:1px solid var(--b); background:var(--card); color:var(--text); font-size:.9rem; cursor:pointer; transition:all .2s; display:flex; flex-direction:column; align-items:center; gap:4px;}
+.book-btn:hover{border-color:var(--p); transform:translateY(-2px); box-shadow:var(--shadow);}
+.book-btn.loaded{border-color:var(--sucesso); background:rgba(16,185,129,.08);}
+.book-btn.downloading{border-color:#f59e0b; background:rgba(245,158,11,.08); animation:pulse 1s infinite;}
+@keyframes pulse{0%{opacity:1;}50%{opacity:.6;}100%{opacity:1;}}
+.book-btn .num{font-weight:700; color:var(--p); font-size:.85rem;}
+.book-btn .status{font-size:.75rem; color:var(--g); margin-top:2px;}
+.book-btn.loaded .status{color:var(--sucesso);}
+.book-btn.downloading .status{color:#d97706;}
 
-.color-bar{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--card);padding:14px 20px;border-radius:50px;box-shadow:var(--shadow);z-index:200;display:none;gap:12px;align-items:center;border:1px solid var(--b)}
-.cbtn{width:42px;height:42px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:all .2s;box-shadow:0 2px 6px rgba(0,0,0,.15)}
-.cbtn:hover{transform:scale(1.15)}
-.cbtn.yellow{background:#f59e0b}
-.cbtn.green{background:#059669}
-.cbtn.blue{background:#2563eb}
-.cbtn.red{background:#dc2626}
-.cbtn.purple{background:#7c3aed}
-.cbtn.fav{background:linear-gradient(45deg,#fbbf24,#f59e0b)}
-.cbtn.none{background:repeating-linear-gradient(45deg,transparent,transparent 5px,var(--g) 5px,var(--g) 6px)}
+.screen{display:none; padding:16px; max-width:720px; margin:0 auto;}
+.screen.active{display:block;}
 
-nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);display:flex;justify-content:space-around;padding:10px 0;box-shadow:0 -2px 12px rgba(0,0,0,.08);z-index:100}
-nav button{background:none;border:none;font-size:.75rem;color:var(--g);display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;transition:all .2s}
-nav button.active{color:var(--p);font-weight:600}
-nav span{font-size:1.35rem}
-.fav-item{padding:16px;border-bottom:1px solid var(--b);cursor:pointer;transition:background .2s;border-radius:10px;margin-bottom:4px}
-.fav-item:hover{background:var(--p-light)}
-.fav-book{font-weight:700;font-size:1rem;margin-bottom:6px;color:var(--p)}
-.fav-text{font-size:.95rem;color:var(--text2);line-height:1.6}
-.empty{text-align:center;padding:80px 20px;color:var(--g);line-height:1.7;font-size:1.05rem}
-.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--card);color:var(--text);padding:14px 28px;border-radius:50px;box-shadow:var(--shadow);z-index:1000;opacity:0;transition:all .3s;pointer-events:none;font-weight:600;max-width:85%;text-align:center;border:1px solid var(--b)}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(-5px)}
-.hidden{display:none!important}
-input[type="file"]{display:none}
+.read-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:12px;}
+.read-header h2{font-size:1.1rem; color:var(--p); flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.header-actions{display:flex; gap:8px;}
+.header-actions button{padding:6px 10px; border-radius:6px; border:none; background:var(--b); color:var(--text); cursor:pointer; font-weight:700; font-size:.9rem;}
 
-/* NOVO: Controle de velocidade do áudio */
-.speed-ctrl{display:flex;align-items:center;gap:4px;padding:4px 8px;background:var(--b);border-radius:20px;font-size:.8rem;font-weight:700;color:var(--text2)}
-.speed-ctrl button{background:none;border:none;cursor:pointer;padding:2px 6px;font-weight:700;color:var(--p);font-size:.9rem}
-.speed-ctrl button:hover{color:var(--s)}
+.chapter-nav{display:flex; justify-content:space-between; align-items:center; margin:16px 0; padding-bottom:12px; border-bottom:1px solid var(--b); flex-wrap:wrap; gap:10px;}
+.chapter-nav button{padding:10px 16px; border-radius:8px; border:none; background:var(--p); color:#fff; cursor:pointer; font-weight:600; font-size:.9rem; transition:opacity .2s;}
+.chapter-nav button:disabled{opacity:.35; cursor:not-allowed;}
+.chapter-number{font-weight:700; font-size:1rem; color:var(--p); text-align:center; flex:1; min-width:120px;}
 
-@media(max-width:480px){
-  .chapter-nav button{padding:10px 16px;font-size:.95rem}
-  .verse{padding:12px 10px}
-  .read-tools{padding:8px}
-  .tool-btn{padding:6px 10px;font-size:.8rem}
+.download-all-bar{background:rgba(16,185,129,.1); border:1px solid var(--sucesso); padding:10px 14px; border-radius:10px; margin:12px 0; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;}
+.download-all-bar button{padding:8px 14px; border-radius:6px; border:none; background:var(--sucesso); color:#fff; font-weight:600; cursor:pointer; font-size:.9rem;}
+.progress-bar{width:100%; height:6px; background:var(--b); border-radius:3px; margin-top:8px; overflow:hidden;}
+.progress-fill{height:100%; background:var(--sucesso); width:0%; transition:width .3s;}
+
+.size-small .verse{font-size:.95rem; line-height:1.6;}
+.size-medium .verse{font-size:1.05rem; line-height:1.75;}
+.size-large .verse{font-size:1.2rem; line-height:1.85;}
+
+.verse{
+  padding:12px 10px; margin:6px 0; border-radius:8px; 
+  word-wrap:break-word !important; overflow-wrap:break-word !important;
+  word-break:normal !important; hyphens:none !important;
+  -webkit-hyphens:none !important; -moz-hyphens:none !important;
+  text-align:justify; cursor:pointer; transition:background .2s; position:relative;
+  border-bottom:1px solid rgba(0,0,0,.03);
 }
+.dark .verse{border-bottom:1px solid rgba(255,255,255,.05);}
+.verse:active{background:rgba(0,0,0,.05);}
+.dark .verse:active{background:rgba(255,255,255,.05);}
+
+/* Cores de Destaque */
+.verse.hl-1 { background-color: var(--hl-1); }
+.verse.hl-2 { background-color: var(--hl-2); }
+.verse.hl-3 { background-color: var(--hl-3); }
+.verse.hl-4 { background-color: var(--hl-4); }
+.verse.hl-5 { background-color: var(--hl-5); }
+
+.verse-num{font-weight:700; color:var(--p); margin-right:12px; font-size:.95rem; display:inline-block; min-width:32px;}
+.verse-fav-icon{position:absolute; right:10px; top:12px; font-size:1rem; opacity:.3;}
+.verse.is-favorite .verse-fav-icon{opacity:1; color:#ef4444;}
+
+.empty-state{text-align:center; padding:60px 20px; color:var(--g); font-size:1rem; line-height:1.6;}
+.loading{text-align:center; padding:40px 20px; color:var(--p); font-size:1rem;}
+.loading span{display:inline-block; animation:bounce .6s infinite alternate;}
+@keyframes bounce{from{transform:translateY(0);}to{transform:translateY(-6px);}}
+
+.toast{position:fixed; bottom:90px; left:50%; transform:translateX(-50%); background:#1e293b; color:#fff; padding:12px 24px; border-radius:var(--r); box-shadow:var(--shadow); z-index:1000; opacity:0; transition:opacity .3s; pointer-events:none; max-width:90%; text-align:center; font-size:.9rem;}
+.toast.show{opacity:1;}
+
+nav{position:fixed; bottom:0; left:0; right:0; background:var(--card); display:flex; justify-content:space-around; padding:10px 0; box-shadow:0 -2px 10px rgba(0,0,0,.08); z-index:100; border-top:1px solid var(--b);}
+nav button{background:none; border:none; font-size:.75rem; color:var(--g); display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; flex:1;}
+nav button span{font-size:1.3rem;}
+nav button.active{color:var(--p); font-weight:600;}
+
+.hidden{display:none !important;}
+
+.fav-item{padding:14px; background:var(--card); border:1px solid var(--b); border-radius:10px; margin-bottom:10px; cursor:pointer;}
+.fav-item:active{background:var(--active);}
+.fav-ref{font-weight:700; color:var(--p); font-size:.9rem; margin-bottom:4px;}
+.fav-text{font-size:.95rem; line-height:1.5; color:var(--text);}
+
+#verseActionMenu{
+  position:fixed; bottom:0; left:0; right:0; background:var(--card); 
+  border-radius:20px 20px 0 0; box-shadow:0 -4px 20px rgba(0,0,0,.15);
+  padding:20px; z-index:200; transform:translateY(100%); transition:transform .3s ease;
+}
+#verseActionMenu.show{transform:translateY(0);}
+.menu-overlay{position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:190; opacity:0; pointer-events:none; transition:opacity .3s;}
+.menu-overlay.show{opacity:1; pointer-events:auto;}
+.menu-title{font-weight:700; margin-bottom:16px; color:var(--p); font-size:1rem;}
+
+.highlight-colors{display:flex; gap:12px; justify-content:center; margin-bottom:16px;}
+.color-btn{width:40px; height:40px; border-radius:50%; border:3px solid transparent; cursor:pointer; transition:transform .2s;}
+.color-btn:active{transform:scale(0.9);}
+.color-btn.active{border-color:var(--text); transform:scale(1.1);}
+.c1{background:#fef08a;} .dark .c1{background:rgba(254,240,138,0.4);}
+.c2{background:#bbf7d0;} .dark .c2{background:rgba(187,247,208,0.4);}
+.c3{background:#bfdbfe;} .dark .c3{background:rgba(191,219,254,0.4);}
+.c4{background:#fbcfe8;} .dark .c4{background:rgba(251,207,232,0.4);}
+.c5{background:#fed7aa;} .dark .c5{background:rgba(254,215,170,0.4);}
+.c-none{background:var(--b); display:flex; align-items:center; justify-content:center; font-size:1.2rem;}
+
+.action-btn{width:100%; padding:14px; border-radius:10px; border:none; font-weight:700; font-size:1rem; cursor:pointer; margin-top:8px; display:flex; align-items:center; justify-content:center; gap:8px;}
+.btn-fav{background:var(--active); color:var(--p);}
+.btn-fav.active{background:#ef4444; color:#fff;}
+.btn-close-menu{background:var(--b); color:var(--text); margin-top:16px;}
+
+/* Modal de Busca */
+#searchModal{
+  position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:300; 
+  display:flex; align-items:center; justify-content:center; padding:20px;
+  opacity:0; pointer-events:none; transition:opacity .3s;
+}
+#searchModal.show{opacity:1; pointer-events:auto;}
+.search-box{
+  background:var(--card); width:100%; max-width:400px; padding:24px; 
+  border-radius:16px; box-shadow:0 10px 25px rgba(0,0,0,.2);
+}
+.search-box h3{margin-bottom:16px; color:var(--p);}
+.search-input{
+  width:100%; padding:12px; border:2px solid var(--b); border-radius:8px; 
+  font-size:1rem; background:var(--bg); color:var(--text); margin-bottom:16px;
+}
+.search-input:focus{outline:none; border-color:var(--p);}
+.search-btns{display:flex; gap:10px;}
+.search-btns button{flex:1; padding:12px; border-radius:8px; border:none; font-weight:700; cursor:pointer; font-size:1rem;}
+.btn-search-go{background:var(--p); color:#fff;}
+.btn-search-cancel{background:var(--b); color:var(--text);}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>📖 Bíblia JFA — Offline</h1>
-  <button id="btnTheme" title="Modo Dia/Noite">🌙</button>
+  <h1>📖 Bíblia Multi-API</h1>
+  <div class="header-btns">
+    <button id="btnClear" title="Limpar dados">🗑️</button>
+    <button id="btnTheme" title="Tema">🌙</button>
+  </div>
 </header>
 
-<!-- ==================== TELA LIVROS ==================== -->
-<div id="mainScreen" class="container">
-  <div class="aviso">
-    📁 <span>Leitor Offline com Áudio e Letras Grandes</span><br>
-    Use o botão abaixo para baixar a Bíblia completa automaticamente.
-  </div>
+<div class="info-bar" id="infoBar">
+  📶 Online → Offline: Busca inteligente com fallback! Baixe uma vez e leia sem internet.
+  <div class="status-api" id="apiStatus"></div>
+  <div style="margin-top:6px; font-size:.85rem;">📚 <span id="savedCount">0</span>/66 livros salvos offline</div>
+</div>
 
-  <button class="btn btn-github" id="btnGithub">📥 Carregar Bíblia do GitHub (Automático)</button>
-  <button class="btn btn-local" id="btnLocal">📁 Ou Selecionar Pasta Local</button>
-  <button class="btn btn-clear" id="btnClear" style="display:none">🗑️ Limpar Dados e Reiniciar</button>
-  <input type="file" id="inputPasta" webkitdirectory directory multiple>
-
-  <div class="status" id="status">⚠️ Nenhuma bíblia carregada ainda.</div>
-
+<div id="booksScreen" class="screen active">
   <div class="tabs">
-    <button class="tab active" data-test="AT" onclick="trocarTest('AT')">📜 Antigo (01-39)</button>
-    <button class="tab" data-test="NT" onclick="trocarTest('NT')">✝️ Novo (40-66)</button>
+    <button class="tab active" data-test="AT">📜 Antigo (01-39)</button>
+    <button class="tab" data-test="NT">✝️ Novo (40-66)</button>
   </div>
-  <div id="bookList" class="book-grid"></div>
+  
+  <div class="download-all-bar">
+    <div>⬇️ Baixar todos os livros</div>
+    <button id="btnDownloadAll">Iniciar Download</button>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+  
+  <div class="book-grid" id="bookList"></div>
 </div>
 
-<!-- ==================== TELA LEITURA ==================== -->
-<div id="readScreen" class="container hidden">
-  <div class="top-bar">
-    <button class="btn-back" onclick="voltar()">← Voltar</button>
-    <span id="bookTitle" style="font-weight:700;font-size:1rem"></span>
-    <button class="btn-fav" id="btnFav" onclick="favLivro()">⭐ Favoritar</button>
-  </div>
-
-  <!-- NOVO: Barra de ferramentas de leitura -->
-  <div class="read-tools">
-    <button class="tool-btn" id="btnPlay" onclick="toggleAudio()" title="Ler em áudio">🔊 Ouvir</button>
-    <button class="tool-btn" id="btnStop" onclick="stopAudio()" title="Parar áudio" style="display:none">⏹️ Parar</button>
-    <div class="speed-ctrl" id="speedCtrl" style="display:none">
-      <button onclick="mudarVel(-0.25)">−</button>
-      <span id="speedLabel">1.0x</span>
-      <button onclick="mudarVel(0.25)">+</button>
-    </div>
-    <div class="font-sizes">
-      <button data-fs="p" onclick="mudarFonte('p')" title="Pequeno">P</button>
-      <button data-fs="m" onclick="mudarFonte('m')" title="Médio">M</button>
-      <button data-fs="g" onclick="mudarFonte('g')" title="Grande">G</button>
-      <button data-fs="gg" onclick="mudarFonte('gg')" title="Extra Grande">GG</button>
+<div id="readScreen" class="screen">
+  <div class="read-header">
+    <button class="btn-back" id="btnBack">← Voltar</button>
+    <h2 id="bookTitle"></h2>
+    <div class="header-actions">
+      <button id="btnSearch" title="Buscar Capítulo">🔍</button>
+      <button id="btnFontSize" title="Tamanho da Fonte">Aa</button>
     </div>
   </div>
-
   <div class="chapter-nav">
-    <button id="btnPrev" onclick="capAnt()">◀ Anterior</button>
-    <span class="ch-title" id="chTitle">Capítulo 1</span>
-    <button id="btnNext" onclick="capProx()">Próximo ▶</button>
+    <button id="btnPrev">← Capítulo</button>
+    <span class="chapter-number" id="chapterTitle">Capítulo 1</span>
+    <button id="btnNext">Capítulo →</button>
   </div>
-  <div id="verses"></div>
+  <div id="versesContainer"></div>
 </div>
 
-<!-- ==================== TELA FAVORITOS ==================== -->
-<div id="favScreen" class="container hidden">
-  <h2 style="margin:24px 0;font-size:1.3rem;text-align:center">⭐ Meus Favoritos</h2>
-  <div id="favList"></div>
+<div id="favoritesScreen" class="screen">
+  <h2 style="margin-bottom:16px; color:var(--p);">⭐ Meus Favoritos</h2>
+  <div id="favoritesList"></div>
 </div>
 
-<!-- ==================== BARRA DE CORES ==================== -->
-<div id="colorBar" class="color-bar">
-  <button class="cbtn none" onclick="marcar('')" title="Remover"></button>
-  <button class="cbtn yellow" onclick="marcar('yellow')" title="Âmbar"></button>
-  <button class="cbtn green" onclick="marcar('green')" title="Esmeralda"></button>
-  <button class="cbtn blue" onclick="marcar('blue')" title="Azul Royal"></button>
-  <button class="cbtn red" onclick="marcar('red')" title="Carmesim"></button>
-  <button class="cbtn purple" onclick="marcar('purple')" title="Roxo"></button>
-  <button class="cbtn fav" onclick="marcar('fav')" title="Favorito ⭐"></button>
+<!-- Modal de Busca -->
+<div id="searchModal">
+  <div class="search-box">
+    <h3>🔍 Ir para Capítulo</h3>
+    <input type="text" id="searchInput" class="search-input" placeholder="Ex: João 3, sl 23, gn 1, ou apenas 5" autocomplete="off">
+    <div class="search-btns">
+      <button class="btn-search-cancel" id="btnSearchCancel">Cancelar</button>
+      <button class="btn-search-go" id="btnSearchGo">Buscar</button>
+    </div>
+  </div>
 </div>
 
-<nav>
-  <button class="active" onclick="tela('main')"><span>📖</span>Livros</button>
-  <button onclick="tela('favs')"><span>⭐</span>Favoritos</button>
-</nav>
+<div class="menu-overlay" id="menuOverlay"></div>
+<div id="verseActionMenu">
+  <div class="menu-title">Marcar Versículo</div>
+  <div class="highlight-colors">
+    <button class="color-btn c1" data-color="1" title="Amarelo"></button>
+    <button class="color-btn c2" data-color="2" title="Verde"></button>
+    <button class="color-btn c3" data-color="3" title="Azul"></button>
+    <button class="color-btn c4" data-color="4" title="Rosa"></button>
+    <button class="color-btn c5" data-color="5" title="Laranja"></button>
+    <button class="color-btn c-none" data-color="0" title="Remover cor">🚫</button>
+  </div>
+  <button class="action-btn btn-fav" id="btnToggleFav">
+    <span>⭐</span> <span id="favBtnText">Adicionar aos Favoritos</span>
+  </button>
+  <button class="action-btn btn-close-menu" id="btnCloseMenu">Fechar</button>
+</div>
 
 <div id="toast" class="toast"></div>
 
+<nav>
+  <button class="active" id="navBooks"><span>📚</span> Livros</button>
+  <button id="navFavorites"><span>⭐</span> Favoritos</button>
+  <button id="navAbout"><span>ℹ️</span> Sobre</button>
+</nav>
+
 <script>
-const LIVROS=[
-{num:'01',id:'gn',nome:'Gênesis',caps:50,test:'AT'},{num:'02',id:'ex',nome:'Êxodo',caps:40,test:'AT'},
-{num:'03',id:'lv',nome:'Levítico',caps:27,test:'AT'},{num:'04',id:'nm',nome:'Números',caps:36,test:'AT'},
-{num:'05',id:'dt',nome:'Deuteronômio',caps:34,test:'AT'},{num:'06',id:'js',nome:'Josué',caps:24,test:'AT'},
-{num:'07',id:'jz',nome:'Juízes',caps:21,test:'AT'},{num:'08',id:'rt',nome:'Rute',caps:4,test:'AT'},
-{num:'09',id:'1sm',nome:'1 Samuel',caps:31,test:'AT'},{num:'10',id:'2sm',nome:'2 Samuel',caps:24,test:'AT'},
-{num:'11',id:'1rs',nome:'1 Reis',caps:22,test:'AT'},{num:'12',id:'2rs',nome:'2 Reis',caps:25,test:'AT'},
-{num:'13',id:'1cr',nome:'1 Crônicas',caps:29,test:'AT'},{num:'14',id:'2cr',nome:'2 Crônicas',caps:36,test:'AT'},
-{num:'15',id:'ed',nome:'Esdras',caps:10,test:'AT'},{num:'16',id:'ne',nome:'Neemias',caps:13,test:'AT'},
-{num:'17',id:'et',nome:'Ester',caps:10,test:'AT'},{num:'18',id:'job',nome:'Jó',caps:42,test:'AT'},
-{num:'19',id:'sl',nome:'Salmos',caps:150,test:'AT'},{num:'20',id:'pv',nome:'Provérbios',caps:31,test:'AT'},
-{num:'21',id:'ec',nome:'Eclesiastes',caps:12,test:'AT'},{num:'22',id:'ct',nome:'Cantares',caps:8,test:'AT'},
-{num:'23',id:'is',nome:'Isaías',caps:66,test:'AT'},{num:'24',id:'jr',nome:'Jeremias',caps:52,test:'AT'},
-{num:'25',id:'lm',nome:'Lamentações',caps:5,test:'AT'},{num:'26',id:'ez',nome:'Ezequiel',caps:48,test:'AT'},
-{num:'27',id:'dn',nome:'Daniel',caps:12,test:'AT'},{num:'28',id:'os',nome:'Oséias',caps:14,test:'AT'},
-{num:'29',id:'jl',nome:'Joel',caps:3,test:'AT'},{num:'30',id:'am',nome:'Amós',caps:9,test:'AT'},
-{num:'31',id:'ob',nome:'Obadias',caps:1,test:'AT'},{num:'32',id:'jn',nome:'Jonas',caps:4,test:'AT'},
-{num:'33',id:'mq',nome:'Miquéias',caps:7,test:'AT'},{num:'34',id:'na',nome:'Naum',caps:3,test:'AT'},
-{num:'35',id:'hc',nome:'Habacuque',caps:3,test:'AT'},{num:'36',id:'sf',nome:'Sofonias',caps:3,test:'AT'},
-{num:'37',id:'ag',nome:'Ageu',caps:2,test:'AT'},{num:'38',id:'zc',nome:'Zacarias',caps:14,test:'AT'},
-{num:'39',id:'ml',nome:'Malaquias',caps:4,test:'AT'},{num:'40',id:'mt',nome:'Mateus',caps:28,test:'NT'},
-{num:'41',id:'mc',nome:'Marcos',caps:16,test:'NT'},{num:'42',id:'lc',nome:'Lucas',caps:24,test:'NT'},
-{num:'43',id:'jo',nome:'João',caps:21,test:'NT'},{num:'44',id:'at',nome:'Atos',caps:28,test:'NT'},
-{num:'45',id:'rm',nome:'Romanos',caps:16,test:'NT'},{num:'46',id:'1co',nome:'1 Coríntios',caps:16,test:'NT'},
-{num:'47',id:'2co',nome:'2 Coríntios',caps:13,test:'NT'},{num:'48',id:'gl',nome:'Gálatas',caps:6,test:'NT'},
-{num:'49',id:'ef',nome:'Efésios',caps:6,test:'NT'},{num:'50',id:'fp',nome:'Filipenses',caps:4,test:'NT'},
-{num:'51',id:'cl',nome:'Colossenses',caps:4,test:'NT'},{num:'52',id:'1ts',nome:'1 Tessalonicenses',caps:5,test:'NT'},
-{num:'53',id:'2ts',nome:'2 Tessalonicenses',caps:3,test:'NT'},{num:'54',id:'1tm',nome:'1 Timóteo',caps:6,test:'NT'},
-{num:'55',id:'2tm',nome:'2 Timóteo',caps:4,test:'NT'},{num:'56',id:'tt',nome:'Tito',caps:3,test:'NT'},
-{num:'57',id:'fm',nome:'Filemom',caps:1,test:'NT'},{num:'58',id:'hb',nome:'Hebreus',caps:13,test:'NT'},
-{num:'59',id:'tg',nome:'Tiago',caps:5,test:'NT'},{num:'60',id:'1pe',nome:'1 Pedro',caps:5,test:'NT'},
-{num:'61',id:'2pe',nome:'2 Pedro',caps:3,test:'NT'},{num:'62',id:'1jo',nome:'1 João',caps:5,test:'NT'},
-{num:'63',id:'2jo',nome:'2 João',caps:1,test:'NT'},{num:'64',id:'3jo',nome:'3 João',caps:1,test:'NT'},
-{num:'65',id:'jd',nome:'Judas',caps:1,test:'NT'},{num:'66',id:'ap',nome:'Apocalipse',caps:22,test:'NT'}
+// ============================================================
+// 📚 DADOS DOS 66 LIVROS DA BÍBLIA
+// ============================================================
+const LIVROS = [
+  {id:'gn',num:1,nome:'Gênesis',caps:50,test:'AT',abbrev:'gn'},
+  {id:'ex',num:2,nome:'Êxodo',caps:40,test:'AT',abbrev:'ex'},
+  {id:'lv',num:3,nome:'Levítico',caps:27,test:'AT',abbrev:'lv'},
+  {id:'nm',num:4,nome:'Números',caps:36,test:'AT',abbrev:'nm'},
+  {id:'dt',num:5,nome:'Deuteronômio',caps:34,test:'AT',abbrev:'dt'},
+  {id:'js',num:6,nome:'Josué',caps:24,test:'AT',abbrev:'js'},
+  {id:'jz',num:7,nome:'Juízes',caps:21,test:'AT',abbrev:'jz'},
+  {id:'rt',num:8,nome:'Rute',caps:4,test:'AT',abbrev:'rt'},
+  {id:'1sm',num:9,nome:'1 Samuel',caps:31,test:'AT',abbrev:'1sm'},
+  {id:'2sm',num:10,nome:'2 Samuel',caps:24,test:'AT',abbrev:'2sm'},
+  {id:'1rs',num:11,nome:'1 Reis',caps:22,test:'AT',abbrev:'1rs'},
+  {id:'2rs',num:12,nome:'2 Reis',caps:25,test:'AT',abbrev:'2rs'},
+  {id:'1cr',num:13,nome:'1 Crônicas',caps:29,test:'AT',abbrev:'1cr'},
+  {id:'2cr',num:14,nome:'2 Crônicas',caps:36,test:'AT',abbrev:'2cr'},
+  {id:'ed',num:15,nome:'Esdras',caps:10,test:'AT',abbrev:'ed'},
+  {id:'ne',num:16,nome:'Neemias',caps:13,test:'AT',abbrev:'ne'},
+  {id:'et',num:17,nome:'Ester',caps:10,test:'AT',abbrev:'et'},
+  {id:'job',num:18,nome:'Jó',caps:42,test:'AT',abbrev:'job'},
+  {id:'sl',num:19,nome:'Salmos',caps:150,test:'AT',abbrev:'sl'},
+  {id:'pv',num:20,nome:'Provérbios',caps:31,test:'AT',abbrev:'pv'},
+  {id:'ec',num:21,nome:'Eclesiastes',caps:12,test:'AT',abbrev:'ec'},
+  {id:'ct',num:22,nome:'Cantares',caps:8,test:'AT',abbrev:'ct'},
+  {id:'is',num:23,nome:'Isaías',caps:66,test:'AT',abbrev:'is'},
+  {id:'jr',num:24,nome:'Jeremias',caps:52,test:'AT',abbrev:'jr'},
+  {id:'lm',num:25,nome:'Lamentações',caps:5,test:'AT',abbrev:'lm'},
+  {id:'ez',num:26,nome:'Ezequiel',caps:48,test:'AT',abbrev:'ez'},
+  {id:'dn',num:27,nome:'Daniel',caps:12,test:'AT',abbrev:'dn'},
+  {id:'os',num:28,nome:'Oséias',caps:14,test:'AT',abbrev:'os'},
+  {id:'jl',num:29,nome:'Joel',caps:3,test:'AT',abbrev:'jl'},
+  {id:'am',num:30,nome:'Amós',caps:9,test:'AT',abbrev:'am'},
+  {id:'ob',num:31,nome:'Obadias',caps:1,test:'AT',abbrev:'ob'},
+  {id:'jn',num:32,nome:'Jonas',caps:4,test:'AT',abbrev:'jn'},
+  {id:'mq',num:33,nome:'Miquéias',caps:7,test:'AT',abbrev:'mq'},
+  {id:'na',num:34,nome:'Naum',caps:3,test:'AT',abbrev:'na'},
+  {id:'hc',num:35,nome:'Habacuque',caps:3,test:'AT',abbrev:'hc'},
+  {id:'sf',num:36,nome:'Sofonias',caps:3,test:'AT',abbrev:'sf'},
+  {id:'ag',num:37,nome:'Ageu',caps:2,test:'AT',abbrev:'ag'},
+  {id:'zc',num:38,nome:'Zacarias',caps:14,test:'AT',abbrev:'zc'},
+  {id:'ml',num:39,nome:'Malaquias',caps:4,test:'AT',abbrev:'ml'},
+  {id:'mt',num:40,nome:'Mateus',caps:28,test:'NT',abbrev:'mt'},
+  {id:'mc',num:41,nome:'Marcos',caps:16,test:'NT',abbrev:'mc'},
+  {id:'lc',num:42,nome:'Lucas',caps:24,test:'NT',abbrev:'lc'},
+  {id:'jo',num:43,nome:'João',caps:21,test:'NT',abbrev:'jo'},
+  {id:'at',num:44,nome:'Atos',caps:28,test:'NT',abbrev:'at'},
+  {id:'rm',num:45,nome:'Romanos',caps:16,test:'NT',abbrev:'rm'},
+  {id:'1co',num:46,nome:'1 Coríntios',caps:16,test:'NT',abbrev:'1co'},
+  {id:'2co',num:47,nome:'2 Coríntios',caps:13,test:'NT',abbrev:'2co'},
+  {id:'gl',num:48,nome:'Gálatas',caps:6,test:'NT',abbrev:'gl'},
+  {id:'ef',num:49,nome:'Efésios',caps:6,test:'NT',abbrev:'ef'},
+  {id:'fp',num:50,nome:'Filipenses',caps:4,test:'NT',abbrev:'fp'},
+  {id:'cl',num:51,nome:'Colossenses',caps:4,test:'NT',abbrev:'cl'},
+  {id:'1ts',num:52,nome:'1 Tessalonicenses',caps:5,test:'NT',abbrev:'1ts'},
+  {id:'2ts',num:53,nome:'2 Tessalonicenses',caps:3,test:'NT',abbrev:'2ts'},
+  {id:'1tm',num:54,nome:'1 Timóteo',caps:6,test:'NT',abbrev:'1tm'},
+  {id:'2tm',num:55,nome:'2 Timóteo',caps:4,test:'NT',abbrev:'2tm'},
+  {id:'tt',num:56,nome:'Tito',caps:3,test:'NT',abbrev:'tt'},
+  {id:'fm',num:57,nome:'Filemom',caps:1,test:'NT',abbrev:'fm'},
+  {id:'hb',num:58,nome:'Hebreus',caps:13,test:'NT',abbrev:'hb'},
+  {id:'tg',num:59,nome:'Tiago',caps:5,test:'NT',abbrev:'tg'},
+  {id:'1pe',num:60,nome:'1 Pedro',caps:5,test:'NT',abbrev:'1pe'},
+  {id:'2pe',num:61,nome:'2 Pedro',caps:3,test:'NT',abbrev:'2pe'},
+  {id:'1jo',num:62,nome:'1 João',caps:5,test:'NT',abbrev:'1jo'},
+  {id:'2jo',num:63,nome:'2 João',caps:1,test:'NT',abbrev:'2jo'},
+  {id:'3jo',num:64,nome:'3 João',caps:1,test:'NT',abbrev:'3jo'},
+  {id:'jd',num:65,nome:'Judas',caps:1,test:'NT',abbrev:'jd'},
+  {id:'ap',num:66,nome:'Apocalipse',caps:22,test:'NT',abbrev:'ap'}
 ];
 
-let curTest='AT', curBook=null, curCap=1, vClick=null, isDark=false;
-let favs=JSON.parse(localStorage.getItem('bib_favs')||'[]');
-let marks=JSON.parse(localStorage.getItem('bib_marks')||'{}');
-let disp={};
-
-// ===================== NOVO: ÁUDIO (Text-to-Speech) =====================
-let synth = window.speechSynthesis;
-let audioQueue = [];
-let audioIdx = 0;
-let isPlaying = false;
-let isPaused = false;
-let audioSpeed = 1.0;
-let voicePT = null;
-
-// Carrega voz em português
-function carregarVozPT(){
-  const vozes = synth.getVoices();
-  // Prioriza vozes brasileiras
-  voicePT = vozes.find(v => v.lang === 'pt-BR') ||
-            vozes.find(v => v.lang.startsWith('pt')) ||
-            vozes[0];
-}
-if(synth){
-  carregarVozPT();
-  synth.onvoiceschanged = carregarVozPT;
-}
-
-function toggleAudio(){
-  if(isPlaying && !isPaused){
-    // Pausa
-    synth.pause();
-    isPaused = true;
-    document.getElementById('btnPlay').innerHTML = '▶️ Continuar';
-    document.getElementById('btnPlay').classList.add('playing');
-    toast('⏸️ Áudio pausado');
-    return;
+// ============================================================
+// 🌐 SISTEMA DE APIS COM FALLBACK INTELIGENTE
+// ============================================================
+const APIS = [
+  {
+    nome: 'Bible API (Almeida)',
+    url: (livro, cap) => `https://bible-api.com/${livro.abbrev}+${cap}?translation=almeida`,
+    parser: (dados) => {
+      if (!dados || !dados.verses) return null;
+      return dados.verses.map(v => ({ num: v.verse, texto: v.text }));
+    }
+  },
+  {
+    nome: 'ABíblia Digital (NVI)',
+    url: (livro, cap) => `https://www.abibliadigital.com.br/api/verses/nvi/${livro.abbrev}/${cap}`,
+    parser: (dados) => dados?.verses?.map(v => ({num: v.number, texto: v.text})) || null
   }
-  if(isPaused){
-    // Continua
-    synth.resume();
-    isPaused = false;
-    document.getElementById('btnPlay').innerHTML = '⏸️ Pausar';
-    toast('▶️ Continuando...');
-    return;
+];
+
+// ============================================================
+// ESTADO DO APLICATIVO
+// ============================================================
+let currentTestament = 'AT';
+let currentBook = null;
+let currentChapter = 1;
+let livrosSalvos = {};
+let favorites = [];
+let highlights = {}; // Novo: { "gn-1-1": "1", "jo-3-16": "3" }
+let fontSize = 'medium';
+let baixandoTodos = false;
+
+try {
+  livrosSalvos = JSON.parse(localStorage.getItem('biblia_multiapi_livros') || '{}');
+  favorites = JSON.parse(localStorage.getItem('biblia_multiapi_favoritos') || '[]');
+  highlights = JSON.parse(localStorage.getItem('biblia_multiapi_highlights') || '{}');
+  fontSize = localStorage.getItem('biblia_multiapi_fontsize') || 'medium';
+} catch(e) { console.error('Erro ao carregar dados', e); }
+
+const $ = id => document.getElementById(id);
+const showToast = msg => { const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); };
+
+// ============================================================
+// 🔄 FUNÇÃO PRINCIPAL — BUSCA EM APIS (FALLBACK)
+// ============================================================
+async function buscarVersiculos(livro, capitulo) {
+  for(let i = 0; i < APIS.length; i++) {
+    const api = APIS[i];
+    atualizarStatusApi(i, 'busy');
+    
+    try {
+      const url = api.url(livro, capitulo);
+      const resposta = await fetch(url, { signal:AbortSignal.timeout(10000) });
+      
+      if(!resposta.ok) throw new Error(`Erro ${resposta.status}`);
+      
+      const dados = await resposta.json();
+      const versiculos = api.parser(dados, livro, capitulo);
+      
+      if(versiculos && versiculos.length > 0) {
+        atualizarStatusApi(i, 'ok');
+        return versiculos;
+      }
+    } catch(erro) {
+      atualizarStatusApi(i, 'fail');
+    }
   }
-  // Inicia do começo
-  iniciarAudio(0);
+  return null;
 }
 
-function iniciarAudio(inicioIdx){
-  if(!synth){toast('❌ Seu navegador não suporta áudio.');return}
-  const versos = document.querySelectorAll('.verse');
-  if(!versos.length){toast('⚠️ Nenhum versículo para ler.');return}
-  
-  stopAudio(true); // limpa qualquer áudio anterior
-  
-  audioQueue = [];
-  for(let i = inicioIdx; i < versos.length; i++){
-    const v = versos[i];
-    const texto = v.textContent.trim();
-    audioQueue.push({el: v, texto: texto, idx: i});
-  }
-  audioIdx = 0;
-  isPlaying = true;
-  isPaused = false;
-  
-  document.getElementById('btnPlay').innerHTML = '⏸️ Pausar';
-  document.getElementById('btnPlay').classList.add('playing');
-  document.getElementById('btnStop').style.display = 'flex';
-  document.getElementById('speedCtrl').style.display = 'flex';
-  
-  lerProximo();
-  toast('🔊 Iniciando leitura em áudio...');
-}
-
-function lerProximo(){
-  if(audioIdx >= audioQueue.length){
-    stopAudio();
-    toast('✅ Leitura concluída!');
-    return;
-  }
-  
-  const item = audioQueue[audioIdx];
-  
-  // Remove destaque anterior
-  document.querySelectorAll('.verse.reading').forEach(el => el.classList.remove('reading'));
-  // Destaca versículo atual
-  item.el.classList.add('reading');
-  item.el.scrollIntoView({behavior: 'smooth', block: 'center'});
-  
-  const utter = new SpeechSynthesisUtterance(item.texto);
-  utter.lang = 'pt-BR';
-  utter.rate = audioSpeed;
-  utter.pitch = 1;
-  if(voicePT) utter.voice = voicePT;
-  
-  utter.onend = () => {
-    audioIdx++;
-    lerProximo();
-  };
-  utter.onerror = (e) => {
-    console.error('Erro de áudio:', e);
-    audioIdx++;
-    lerProximo();
-  };
-  
-  synth.speak(utter);
-}
-
-function stopAudio(silent){
-  if(synth) synth.cancel();
-  isPlaying = false;
-  isPaused = false;
-  audioQueue = [];
-  audioIdx = 0;
-  document.querySelectorAll('.verse.reading').forEach(el => el.classList.remove('reading'));
-  document.getElementById('btnPlay').innerHTML = '🔊 Ouvir';
-  document.getElementById('btnPlay').classList.remove('playing');
-  document.getElementById('btnStop').style.display = 'none';
-  document.getElementById('speedCtrl').style.display = 'none';
-  if(!silent) toast('⏹️ Áudio parado');
-}
-
-function mudarVel(delta){
-  audioSpeed = Math.max(0.5, Math.min(2.0, audioSpeed + delta));
-  audioSpeed = Math.round(audioSpeed * 100) / 100;
-  document.getElementById('speedLabel').textContent = audioSpeed.toFixed(2) + 'x';
-  toast('⚡ Velocidade: ' + audioSpeed + 'x');
-  // Se estiver tocando, reinicia com nova velocidade
-  if(isPlaying && !isPaused){
-    const idxAtual = audioIdx;
-    stopAudio(true);
-    iniciarAudio(idxAtual);
-  }
-}
-
-// ===================== NOVO: TAMANHO DE FONTE =====================
-const FONT_SIZES = {p: '0.95rem', m: '1.05rem', g: '1.35rem', gg: '1.7rem'};
-let curFontSize = localStorage.getItem('bib_fs') || 'm';
-
-function aplicarFonte(tamanho){
-  curFontSize = tamanho;
-  document.documentElement.style.setProperty('--fs', FONT_SIZES[tamanho]);
-  localStorage.setItem('bib_fs', tamanho);
-  document.querySelectorAll('.font-sizes button').forEach(b => {
-    b.classList.toggle('active', b.dataset.fs === tamanho);
+function initApiStatus() {
+  const container = $('apiStatus');
+  container.innerHTML = '';
+  APIS.forEach((api, i) => {
+    const span = document.createElement('span');
+    span.className = 'api-tag ok';
+    span.id = `api-tag-${i}`;
+    span.textContent = `${api.nome.split(' ')[0]} ✅`;
+    container.appendChild(span);
   });
 }
 
-function mudarFonte(tamanho){
-  aplicarFonte(tamanho);
-  toast('🔤 Tamanho: ' + tamanho.toUpperCase());
-}
-
-// ===================== INDEXEDDB =====================
-const DB='BibliaDB';
-let db;
-function initDB(){return new Promise((ok,no)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=e=>{db=e.target.result;if(!db.objectStoreNames.contains('f'))db.createObjectStore('f',{keyPath:'id'});if(!db.objectStoreNames.contains('m'))db.createObjectStore('m',{keyPath:'k'})};r.onsuccess=e=>{db=e.target.result;ok()};r.onerror=e=>no(e.target.error)})}
-function dbPut(s,d){return new Promise((ok,no)=>{const t=db.transaction(s,'readwrite');t.objectStore(s).put(d).onsuccess=()=>ok()})}
-function dbGet(s,k){return new Promise((ok,no)=>{const t=db.transaction(s,'readonly');const r=t.objectStore(s).get(k);r.onsuccess=()=>ok(r.result)})}
-function dbClear(){return new Promise((ok,no)=>{const t=db.transaction(['f','m'],'readwrite');t.objectStore('f').clear();t.objectStore('m').clear();t.oncomplete=()=>ok()})}
-
-// ===================== GITHUB =====================
-document.getElementById('btnGithub').onclick=async function(){
-  this.disabled=true;this.textContent='⏳ Baixando...';
-  toast('⏳ Baixando Bíblia do GitHub...');
-  try{
-    const r=await fetch('https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_acf.json');
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    const data=await r.json();
-    let n=0;
-    for(const b of data){
-      const info=LIVROS.find(l=>l.id===b.abbrev.toLowerCase());
-      if(!info)continue;
-      const caps={};
-      b.chapters.forEach((arr,i)=>{caps[i+1]=arr.map((t,j)=>({num:j+1,texto:t.trim()}))});
-      await dbPut('f',{id:info.id,data:caps});
-      disp[info.id]='github';n++;
-    }
-    await dbPut('m',{k:'disp',v:disp});
-    await dbPut('m',{k:'ok',v:true});
-    await dbPut('m',{k:'date',v:new Date().toISOString()});
-    onLoaded(n,'GitHub (Almeida Corrigida Fiel)');
-  }catch(e){
-    console.error(e);toast('❌ Erro: '+e.message+'. Verifique sua internet.');
-  }finally{this.disabled=false;this.textContent='📥 Carregar Bíblia do GitHub (Automático)'}
-};
-
-// ===================== PASTA LOCAL =====================
-document.getElementById('btnLocal').onclick=()=>document.getElementById('inputPasta').click();
-document.getElementById('inputPasta').onchange=async function(){
-  if(!this.files.length)return;
-  toast('⏳ Processando arquivos...');
-  let tmp={},n=0;
-  for(const arq of this.files){
-    if(!arq.name.toLowerCase().endsWith('.txt'))continue;
-    const txt=await new Promise(ok=>{const r=new FileReader();r.onload=e=>ok(e.target.result);r.readAsText(arq,'UTF-8')});
-    const info=LIVROS.find(l=>{
-      const a=arq.name.toLowerCase(),nm=l.nome.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-      return a.includes(l.num)&&a.includes(nm)||a.includes(l.id)||a.startsWith(l.num+'-')||a.startsWith(l.num+'_');
-    });
-    if(info){
-      const caps=parseTxt(txt);
-      await dbPut('f',{id:info.id,data:caps});
-      tmp[info.id]=arq.name;n++;
-    }
+function atualizarStatusApi(indice, status) {
+  const tag = $(`api-tag-${indice}`);
+  if(tag) {
+    tag.classList.remove('ok','busy','fail');
+    tag.classList.add(status);
+    const icones = { ok:'✅', busy:'⏳', fail:'❌' };
+    const nomeCurto = APIS[indice].nome.split(' ')[0];
+    tag.textContent = `${nomeCurto} ${icones[status]}`;
   }
-  disp=tmp;
-  await dbPut('m',{k:'disp',v:disp});
-  await dbPut('m',{k:'ok',v:true});
-  await dbPut('m',{k:'date',v:new Date().toISOString()});
-  onLoaded(n,'Pasta Local');
-};
-
-function onLoaded(n,src){
-  const s=document.getElementById('status');
-  s.innerHTML=`✅ Carregado: ${src}<br>📖 ${n}/66 livros<br>💾 Salvo offline!`;
-  s.className='status ok';
-  document.getElementById('btnGithub').style.display='none';
-  document.getElementById('btnLocal').style.display='none';
-  document.getElementById('btnClear').style.display='block';
-  renderBooks();
-  toast(`✅ ${n}/66 livros carregados!`);
 }
 
-document.getElementById('btnClear').onclick=async()=>{
-  await dbClear();disp={};
-  localStorage.removeItem('bib_favs');localStorage.removeItem('bib_marks');
-  favs=[];marks={};
-  document.getElementById('btnGithub').style.display='block';
-  document.getElementById('btnLocal').style.display='block';
-  document.getElementById('btnClear').style.display='none';
-  document.getElementById('status').className='status';
-  document.getElementById('status').textContent='⚠️ Dados limpos. Carregue novamente.';
-  renderBooks();toast('🗑️ Dados limpos!');
-};
-
-function parseTxt(txt){
-  const caps={};let c=1,v=1;caps[1]=[];
-  for(let ln of txt.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n')){
-    ln=ln.trim().replace(/^[●■□▪▸►◦•\-\*]\s*/,'');if(!ln)continue;
-    const mc=ln.match(/^(?:cap[ií]tulo|cap\.?)\s*(\d+)\s*$/i);
-    if(mc){c=+mc[1];if(!caps[c])caps[c]=[];v=1;continue}
-    const m1=ln.match(/^(\d+)\s*[:：]\s*(\d+)\s+(.+)$/);
-    if(m1){c=+m1[1];if(!caps[c])caps[c]=[];caps[c].push({num:+m1[2],texto:m1[3].trim()});v=+m1[2]+1;continue}
-    const m2=ln.match(/^(\d+)[\.\s]\s*(.+)$/);
-    if(m2){const ver=+m2[1];if(ver===1&&caps[c]&&caps[c].length>20){c++;if(!caps[c])caps[c]=[];v=1}if(!caps[c])caps[c]=[];caps[c].push({num:ver,texto:m2[2].trim()});v=ver+1;continue}
-    if(caps[c]&&caps[c].length>0)caps[c][caps[c].length-1].texto+=' '+ln;
-    else{if(!caps[c])caps[c]=[];caps[c].push({num:v,texto:ln});v++}
-  }
-  for(const k in caps)if(!caps[k]||!caps[k].length)delete caps[k];
-  return caps;
+function resetarStatusApi() {
+  APIS.forEach((_, i) => atualizarStatusApi(i, 'ok'));
 }
 
-// ===================== NAVEGAÇÃO =====================
-function trocarTest(t){
-  curTest=t;
-  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-  document.querySelector(`.tab[data-test="${t}"]`).classList.add('active');
-  renderBooks();
+// ============================================================
+// INICIALIZAÇÃO
+// ============================================================
+function init(){
+  initApiStatus();
+  atualizarContador();
+  renderizarLivros();
+  aplicarTemaSalvo();
+  aplicarFontSize();
 }
 
-function renderBooks(){
-  const el=document.getElementById('bookList');el.innerHTML='';
-  if(!Object.keys(disp).length){el.innerHTML='<p style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--g)">👆 Use o botão "Carregar do GitHub" acima.</p>';return}
-  LIVROS.filter(l=>l.test===curTest).forEach(b=>{
-    const on=!!disp[b.id];
-    const btn=document.createElement('button');
-    btn.className='book-btn '+(on?'on':'off');
-    btn.innerHTML=`<span class="num">${b.num}</span><span class="nome">${b.nome}</span>`;
-    btn.onclick=()=>on?abrir(b):toast('⚠️ '+b.nome+' não disponível.');
-    el.appendChild(btn);
+function atualizarContador(){
+  $('savedCount').textContent = Object.keys(livrosSalvos).length;
+}
+
+function renderizarLivros(){
+  const list = $('bookList');
+  list.innerHTML = '';
+  LIVROS.filter(l => l.test === currentTestament).forEach(book => {
+    const temSalvo = !!livrosSalvos[book.id];
+    const btn = document.createElement('button');
+    btn.className = 'book-btn' + (temSalvo ? ' loaded' : '');
+    btn.dataset.book = book.id;
+    btn.innerHTML = `<span class="num">${String(book.num).padStart(2,'0')}</span><span>${book.nome}</span><span class="status">${temSalvo ? '✅ Offline' : '⬇️ Baixar'}</span>`;
+    btn.onclick = () => abrirLivro(book);
+    list.appendChild(btn);
   });
 }
 
-function abrir(b){
-  curBook=b;curCap=1;
-  stopAudio(true); // Para áudio ao abrir novo livro
-  document.getElementById('bookTitle').textContent=b.num+' '+b.nome;
-  document.getElementById('mainScreen').classList.add('hidden');
-  document.getElementById('readScreen').classList.remove('hidden');
-  updFavBtn();carregar();
-}
-
-function voltar(){
-  stopAudio(true);
-  document.getElementById('readScreen').classList.add('hidden');
-  document.getElementById('mainScreen').classList.remove('hidden');
-  curBook=null;curCap=1;
-}
-
-async function carregar(){
-  stopAudio(true); // Para áudio ao trocar de capítulo
-  const el=document.getElementById('verses');
-  el.innerHTML='<p style="text-align:center;padding:80px 20px;color:var(--g)">📖 Carregando...</p>';
-  try{
-    const rec=await dbGet('f',curBook.id);
-    if(!rec||!rec.data){el.innerHTML='<p style="text-align:center;padding:60px;color:var(--a)">⚠️ Livro não encontrado.</p>';return}
-    const caps=rec.data,vers=caps[curCap];
-    document.getElementById('chTitle').textContent=curBook.nome+' — Capítulo '+curCap;
-    document.getElementById('btnPrev').disabled=!caps[curCap-1];
-    document.getElementById('btnNext').disabled=!caps[curCap+1];
-    if(!vers||!vers.length){el.innerHTML='<p style="text-align:center;padding:60px;color:var(--a)">⚠️ Capítulo não encontrado.</p>';return}
-    el.innerHTML='';
-    const frag=document.createDocumentFragment();
-    vers.forEach(v=>{
-      const k=curBook.id+'_'+curCap+'_'+v.num;
-      const m=marks[k]||'',isF=favs.some(f=>f.bid===curBook.id&&f.c===curCap&&f.v===v.num);
-      const d=document.createElement('div');d.className='verse';
-      if(isF)d.classList.add('fav');if(m)d.classList.add(m);
-      d.innerHTML=`<span class="verse-num">${v.num}</span>${v.texto}`;
-      d.dataset.k=k;d.dataset.v=v.num;
-      d.onclick=e=>{
-        e.stopPropagation();
-        // Se estiver em modo áudio, permite clicar para começar a leitura a partir deste versículo
-        if(isPlaying){
-          const idx = Array.from(document.querySelectorAll('.verse')).indexOf(d);
-          stopAudio(true);
-          iniciarAudio(idx);
-          return;
+// ============================================================
+// 📖 ABRIR LIVRO — BAIXA OTIMIZADO OU CARREGA SALVO
+// ============================================================
+async function abrirLivro(book){
+  currentBook = book;
+  currentChapter = 1;
+  
+  if(livrosSalvos[book.id]) {
+    mostrarTela('readScreen');
+    $('bookTitle').textContent = `${book.num}. ${book.nome}`;
+    carregarCapituloSalvo();
+    return;
+  }
+  
+  showToast(`📶 Baixando ${book.nome}...`);
+  mostrarTela('readScreen');
+  $('bookTitle').textContent = `${book.num}. ${book.nome}`;
+  $('versesContainer').innerHTML = `<div class="loading"><span>📖</span> Preparando download...<br>Aguarde um momento.</div>`;
+  
+  const livroCompleto = {};
+  let sucesso = true;
+  
+  try {
+    $('versesContainer').innerHTML = `<div class="loading">📶 Baixando ${book.nome} completo (1/1)...</div>`;
+    const url = `https://raw.githubusercontent.com/thiagobodruk/biblia/master/json/acf.json`;
+    const resposta = await fetch(url, { signal: AbortSignal.timeout(30000) });
+    if (resposta.ok) {
+      const dados = await resposta.json();
+      const bookData = dados.find(b => b.abbrev === book.abbrev) || dados[book.num - 1];
+      if (bookData && bookData.chapters) {
+        for(let cap = 1; cap <= book.caps; cap++) {
+          if (bookData.chapters[cap - 1]) {
+            livroCompleto[cap] = bookData.chapters[cap - 1].map((texto, i) => ({ num: i + 1, texto: texto.trim() }));
+          }
         }
-        vClick={el:d,k,v:v.num};
-        document.getElementById('colorBar').style.display='flex';
-      };
-      frag.appendChild(d);
-    });
-    el.appendChild(frag);
-  }catch(e){el.innerHTML='<p style="text-align:center;padding:60px;color:var(--a)">Erro ao carregar.</p>'}
-}
-
-function capAnt(){if(curCap>1){curCap--;carregar();scrollTo({top:0,behavior:'smooth'})}}
-function capProx(){curCap++;carregar();scrollTo({top:0,behavior:'smooth'})}
-
-// ===================== MARCAÇÃO =====================
-function marcar(cor){
-  if(!vClick)return;
-  const{el,k,v}=vClick;
-  el.classList.remove('yellow','green','blue','red','purple','fav');
-  if(cor==='fav'){
-    const i=favs.findIndex(f=>f.bid===curBook.id&&f.c===curCap&&f.v===v);
-    if(i>=0){favs.splice(i,1);delete marks[k];toast('⭐ Removido')}
-    else{favs.push({bid:curBook.id,bn:curBook.nome,c:curCap,v,text:el.textContent.trim()});toast('⭐ Favoritado!')}
-    sf();el.classList.add('fav');
-  }else if(cor===''){
-    delete marks[k];
-    const i=favs.findIndex(f=>f.bid===curBook.id&&f.c===curCap&&f.v===v);
-    if(i>=0)favs.splice(i,1);sf();toast('✓ Removido');
-  }else{marks[k]=cor;el.classList.add(cor);sm();toast('✓ Marcado!')}
-  document.getElementById('colorBar').style.display='none';vClick=null;
-}
-document.addEventListener('click',e=>{
-  if(!document.getElementById('colorBar').contains(e.target)&&!e.target.classList.contains('verse')){
-    document.getElementById('colorBar').style.display='none';vClick=null;
-  }
-});
-
-// ===================== FAVORITOS =====================
-function sf(){localStorage.setItem('bib_favs',JSON.stringify(favs))}
-function sm(){localStorage.setItem('bib_marks',JSON.stringify(marks))}
-function updFavBtn(){document.getElementById('btnFav').classList.toggle('active',favs.some(f=>f.bid===curBook.id))}
-function favLivro(){
-  const on=favs.some(f=>f.bid===curBook.id);
-  if(on){favs=favs.filter(f=>f.bid!==curBook.id);toast('❌ Removido')}
-  else{favs.push({bid:curBook.id,bn:curBook.nome,c:0,v:0,text:'📖 Livro inteiro'});toast('⭐ Favoritado!')}
-  sf();updFavBtn();
-}
-function renderFavs(){
-  const el=document.getElementById('favList');
-  if(!favs.length){el.innerHTML='<div class="empty">⭐ Nenhum favorito.<br><br>Clique em um versículo para marcar!</div>';return}
-  el.innerHTML='';
-  [...favs].reverse().forEach(f=>{
-    const d=document.createElement('div');d.className='fav-item';
-    d.innerHTML=`<div class="fav-book">${f.bn}${f.c?' '+f.c+':'+f.v:' — Livro'}</div><div class="fav-text">${f.text||'Abrir'}</div>`;
-    d.onclick=()=>{
-      const b=LIVROS.find(l=>l.id===f.bid);
-      if(b&&disp[b.id]){curBook=b;curCap=f.c||1;
-        document.getElementById('favScreen').classList.add('hidden');
-        document.getElementById('readScreen').classList.remove('hidden');
-        document.getElementById('bookTitle').textContent=b.num+' '+b.nome;
-        updFavBtn();carregar();scrollTo(0,0);
-      }else toast('⚠️ Não disponível.');
-    };
-    el.appendChild(d);
-  });
-}
-
-function tela(t){
-  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
-  document.querySelector(`nav button:nth-child(${t==='main'?1:2})`).classList.add('active');
-  document.getElementById('mainScreen').classList.toggle('hidden',t!=='main');
-  document.getElementById('readScreen').classList.add('hidden');
-  document.getElementById('favScreen').classList.toggle('hidden',t!=='favs');
-  if(t==='main')renderBooks();if(t==='favs')renderFavs();
-}
-
-function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
-
-// ===================== TEMA =====================
-document.getElementById('btnTheme').onclick=function(){
-  isDark=!isDark;document.body.classList.toggle('dark',isDark);
-  this.textContent=isDark?'☀️':'🌙';localStorage.setItem('bib_dark',isDark?'1':'0');
-};
-
-// ===================== INIT =====================
-window.onload=async()=>{
-  await initDB();
-  if(localStorage.getItem('bib_dark')==='1'){isDark=true;document.body.classList.add('dark');document.getElementById('btnTheme').textContent='☀️'}
-  
-  // Aplica tamanho de fonte salvo
-  aplicarFonte(curFontSize);
-  
-  try{
-    const ok=await dbGet('m','ok');
-    if(ok&&ok.v){
-      const d=await dbGet('m','disp');
-      const dt=await dbGet('m','date');
-      if(d&&d.v){
-        disp=d.v;
-        const n=Object.keys(disp).length;
-        const s=document.getElementById('status');
-        s.innerHTML=`✅ Carregado do banco 💾<br>📖 ${n}/66 livros<br>📅 ${dt&&dt.v?new Date(dt.v).toLocaleDateString('pt-BR'):''}`;
-        s.className='status cache';
-        document.getElementById('btnGithub').style.display='none';
-        document.getElementById('btnLocal').style.display='none';
-        document.getElementById('btnClear').style.display='block';
-        renderBooks();return;
       }
     }
-  }catch(e){console.error(e)}
-  renderBooks();
+  } catch (e) {
+    console.log("Falha ao baixar do GitHub, tentando APIs alternativas...", e);
+  }
+
+  if (Object.keys(livroCompleto).length < book.caps) {
+    for(let cap = 1; cap <= book.caps; cap++) {
+      if (livroCompleto[cap]) continue;
+      
+      resetarStatusApi();
+      $('chapterTitle').textContent = `Capítulo ${cap}/${book.caps}`;
+      $('versesContainer').innerHTML = `<div class="loading">📶 Buscando capítulo ${cap}/${book.caps}...</div>`;
+      
+      const versiculos = await buscarVersiculos(book, cap);
+      
+      if(!versiculos) {
+        sucesso = false;
+        showToast(`⚠️ Cap ${cap} não encontrado.`);
+        break;
+      }
+      
+      livroCompleto[cap] = versiculos;
+    }
+  }
+  
+  if(Object.keys(livroCompleto).length > 0) {
+    livrosSalvos[book.id] = livroCompleto;
+    try {
+      localStorage.setItem('biblia_multiapi_livros', JSON.stringify(livrosSalvos));
+    } catch(e) {
+      showToast('⚠️ Memória do navegador cheia! Limpe com 🗑️');
+    }
+    atualizarContador();
+    renderizarLivros();
+  }
+  
+  if(sucesso && Object.keys(livroCompleto).length === book.caps) {
+    showToast(`✅ ${book.nome} salvo offline!`);
+    carregarCapituloSalvo();
+  } else {
+    $('versesContainer').innerHTML = `<div class="empty-state">⚠️ Não foi possível baixar todos os capítulos.<br>Verifique sua conexão e tente novamente.</div>`;
+  }
+}
+
+// ============================================================
+// 📥 BAIXAR TODOS OS LIVROS DE UMA VEZ
+// ============================================================
+$('btnDownloadAll').addEventListener('click', async () => {
+  if(baixandoTodos) return showToast('⏳ Já está baixando...');
+  if(!confirm('Isso pode demorar bastante e usar dados móveis. Tem certeza?')) return;
+  
+  baixandoTodos = true;
+  let total = LIVROS.length;
+  let feitos = 0;
+  
+  let bibleData = null;
+  try {
+    showToast('📶 Preparando download (baixando base completa)...');
+    const resposta = await fetch('https://raw.githubusercontent.com/thiagobodruk/biblia/master/json/acf.json', { signal: AbortSignal.timeout(60000) });
+    if (resposta.ok) bibleData = await resposta.json();
+  } catch(e) {
+    console.log("Não foi possível carregar o JSON principal, usando fallback por capítulo.");
+  }
+
+  for(const book of LIVROS) {
+    if(livrosSalvos[book.id]) { feitos++; continue; }
+    
+    $('progressFill').style.width = `${(feitos/total)*100}%`;
+    showToast(`Baixando ${book.nome} (${feitos+1}/${total})`);
+    
+    const livroCompleto = {};
+    
+    if (bibleData) {
+      const bookData = bibleData.find(b => b.abbrev === book.abbrev) || bibleData[book.num - 1];
+      if (bookData && bookData.chapters) {
+        for(let cap = 1; cap <= book.caps; cap++) {
+          if (bookData.chapters[cap - 1]) {
+            livroCompleto[cap] = bookData.chapters[cap - 1].map((texto, i) => ({ num: i + 1, texto: texto.trim() }));
+          }
+        }
+      }
+    }
+    
+    if (Object.keys(livroCompleto).length < book.caps) {
+      for(let cap = 1; cap <= book.caps; cap++) {
+        if (livroCompleto[cap]) continue;
+        const versiculos = await buscarVersiculos(book, cap);
+        if (versiculos) livroCompleto[cap] = versiculos;
+      }
+    }
+    
+    if(Object.keys(livroCompleto).length > 0) {
+      livrosSalvos[book.id] = livroCompleto;
+      try {
+        localStorage.setItem('biblia_multiapi_livros', JSON.stringify(livrosSalvos));
+      } catch(e) {
+        showToast('⚠️ Memória cheia!');
+      }
+    }
+    feitos++;
+    renderizarLivros();
+  }
+  
+  $('progressFill').style.width = '100%';
+  showToast(`✅ Concluído! ${feitos}/${total} livros baixados!`);
+  baixandoTodos = false;
+});
+
+// ============================================================
+// 📖 CARREGAR CAPÍTULO JÁ SALVO
+// ============================================================
+function carregarCapituloSalvo(){
+  $('chapterTitle').textContent = `Capítulo ${currentChapter}`;
+  $('btnPrev').disabled = currentChapter <= 1;
+  $('btnNext').disabled = currentChapter >= currentBook.caps;
+  
+  const versiculos = livrosSalvos[currentBook.id]?.[currentChapter] || [];
+  const cont = $('versesContainer');
+  cont.innerHTML = '';
+  
+  if(!versiculos.length) {
+    cont.innerHTML = `<div class="empty-state">⚠️ Capítulo ${currentChapter} não encontrado.<br>Baixe o livro novamente.</div>`;
+    return;
+  }
+  
+  versiculos.forEach(v => {
+    const div = document.createElement('div');
+    div.className = 'verse';
+    
+    const favId = `${currentBook.id}-${currentChapter}-${v.num}`;
+    
+    // Aplicar Favorito
+    const isFav = favorites.includes(favId);
+    if(isFav) div.classList.add('is-favorite');
+    
+    // Aplicar Destaque (Highlight)
+    const hlColor = highlights[favId];
+    if(hlColor && hlColor !== "0") {
+      div.classList.add(`hl-${hlColor}`);
+    }
+    
+    const textoFormatado = v.texto.replace(/\n/g, '<br>');
+    div.innerHTML = `<span class="verse-num">${v.num}</span>${textoFormatado}<span class="verse-fav-icon">${isFav ? '❤️' : '🤍'}</span>`;
+    div.onclick = () => abrirMenuVersiculo(favId, v.texto, isFav, hlColor);
+    cont.appendChild(div);
+  });
+  window.scrollTo(0,0);
+}
+
+// ============================================================
+// ⬅️➡️ NAVEGAÇÃO ENTRE CAPÍTULOS
+// ============================================================
+$('btnPrev').onclick = () => {
+  if(currentChapter > 1) {
+    currentChapter--;
+    carregarCapituloSalvo();
+  }
 };
 
-// Pausa áudio ao sair da página
-window.addEventListener('beforeunload', () => {
-  if(synth) synth.cancel();
+$('btnNext').onclick = () => {
+  if(currentChapter < currentBook.caps) {
+    currentChapter++;
+    carregarCapituloSalvo();
+  }
+};
+
+$('btnBack').onclick = () => {
+  mostrarTela('booksScreen');
+  currentBook = null;
+  resetarStatusApi();
+};
+
+// ============================================================
+// ⭐ FAVORITOS E 🎨 DESTAQUES (HIGHLIGHTS)
+// ============================================================
+let activeFavId = null;
+
+function abrirMenuVersiculo(favId, texto, isFav, currentHl) {
+  activeFavId = favId;
+  
+  // Atualizar botão de favorito
+  const btnFav = $('btnToggleFav');
+  const txtFav = $('favBtnText');
+  if(isFav) {
+    btnFav.classList.add('active');
+    txtFav.textContent = 'Remover dos Favoritos';
+  } else {
+    btnFav.classList.remove('active');
+    txtFav.textContent = 'Adicionar aos Favoritos';
+  }
+
+  // Atualizar botões de cor
+  document.querySelectorAll('.color-btn').forEach(btn => {
+    btn.classList.remove('active');
+    if(btn.dataset.color === (currentHl || "0")) {
+      btn.classList.add('active');
+    }
+  });
+
+  $('menuOverlay').classList.add('show');
+  $('verseActionMenu').classList.add('show');
+}
+
+function fecharMenu() {
+  $('menuOverlay').classList.remove('show');
+  $('verseActionMenu').classList.remove('show');
+  activeFavId = null;
+}
+
+$('menuOverlay').onclick = fecharMenu;
+$('btnCloseMenu').onclick = fecharMenu;
+
+// Lógica de Destaque (Highlight)
+document.querySelectorAll('.color-btn').forEach(btn => {
+  btn.onclick = () => {
+    if(!activeFavId) return;
+    const cor = btn.dataset.color;
+    
+    if(cor === "0") {
+      delete highlights[activeFavId];
+      showToast('🚫 Destaque removido');
+    } else {
+      highlights[activeFavId] = cor;
+      showToast('🎨 Versículo marcado!');
+    }
+    
+    localStorage.setItem('biblia_multiapi_highlights', JSON.stringify(highlights));
+    fecharMenu();
+    carregarCapituloSalvo(); // Recarrega para aplicar a cor visualmente
+  };
 });
+
+// Lógica de Favorito
+$('btnToggleFav').onclick = () => {
+  if(!activeFavId) return;
+  const idx = favorites.indexOf(activeFavId);
+  if(idx > -1) {
+    favorites.splice(idx, 1);
+    showToast('Removido dos favoritos');
+  } else {
+    favorites.push(activeFavId);
+    showToast('⭐ Adicionado aos favoritos!');
+  }
+  localStorage.setItem('biblia_multiapi_favoritos', JSON.stringify(favorites));
+  fecharMenu();
+  carregarCapituloSalvo();
+  if($('favoritesScreen').classList.contains('active')) renderizarFavoritos();
+};
+
+function renderizarFavoritos() {
+  const list = $('favoritesList');
+  list.innerHTML = '';
+  
+  if(favorites.length === 0) {
+    list.innerHTML = `<div class="empty-state">Nenhum favorito ainda.<br>Toque em um versículo para salvar.</div>`;
+    return;
+  }
+  
+  favorites.forEach(favId => {
+    const [bookId, cap, num] = favId.split('-');
+    const livro = LIVROS.find(l => l.id === bookId);
+    if(!livro || !livrosSalvos[bookId]?.[cap]) return;
+    const versiculo = livrosSalvos[bookId][cap].find(v => v.num == num);
+    if(!versiculo) return;
+    
+    const div = document.createElement('div');
+    div.className = 'fav-item';
+    
+    // Aplicar cor de destaque no favorito também
+    const hlColor = highlights[favId];
+    if(hlColor && hlColor !== "0") div.classList.add(`hl-${hlColor}`);
+    
+    const textoFormatado = versiculo.texto.replace(/\n/g, '<br>');
+    div.innerHTML = `<div class="fav-ref">${livro.num}. ${livro.nome} ${cap}:${num}</div><div class="fav-text">${textoFormatado}</div>`;
+    div.onclick = () => {
+      currentBook = livro;
+      currentChapter = parseInt(cap);
+      mostrarTela('readScreen');
+      $('bookTitle').textContent = `${livro.num}. ${livro.nome}`;
+      carregarCapituloSalvo();
+      document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+      $('navBooks').classList.add('active');
+    };
+    list.appendChild(div);
+  });
+}
+
+// ============================================================
+// 🔍 BUSCA DE CAPÍTULOS
+// ============================================================
+function abrirBusca() {
+  $('searchModal').classList.add('show');
+  const input = $('searchInput');
+  input.value = '';
+  setTimeout(() => input.focus(), 100);
+}
+
+function fecharBusca() {
+  $('searchModal').classList.remove('show');
+}
+
+$('btnSearch').onclick = abrirBusca;
+$('btnSearchCancel').onclick = fecharBusca;
+$('searchModal').onclick = (e) => { if(e.target === $('searchModal')) fecharBusca(); };
+
+$('searchInput').addEventListener('keypress', (e) => {
+  if(e.key === 'Enter') processarBusca();
+});
+
+$('btnSearchGo').onclick = processarBusca;
+
+function processarBusca() {
+  const query = $('searchInput').value.trim().toLowerCase();
+  if(!query) return;
+
+  // Normalizar acentos
+  const normalize = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const qNorm = normalize(query);
+
+  let livroAlvo = currentBook;
+  let capAlvo = currentChapter;
+
+  // Tenta extrair número do final (ex: "joão 3", "gn 1", "3")
+  const match = qNorm.match(/^(.*?)(\d+)$/);
+  
+  if (match) {
+    const nomeBusca = match[1].trim();
+    capAlvo = parseInt(match[2]);
+
+    if (nomeBusca.length > 0) {
+      // Buscar livro por nome ou abreviação
+      livroAlvo = LIVROS.find(l => 
+        normalize(l.nome).includes(nomeBusca) || 
+        l.abbrev === nomeBusca || 
+        l.id === nomeBusca
+      );
+    }
+  } else {
+    // Se for apenas um número, assume o livro atual
+    const numOnly = parseInt(query);
+    if (!isNaN(numOnly)) {
+      capAlvo = numOnly;
+    }
+  }
+
+  if (!livroAlvo) {
+    showToast('⚠️ Livro não encontrado. Ex: "João 3" ou "sl 23"');
+    return;
+  }
+
+  if (capAlvo < 1 || capAlvo > livroAlvo.caps) {
+    showToast(`⚠️ Capítulo inválido. ${livroAlvo.nome} tem ${livroAlvo.caps} capítulos.`);
+    return;
+  }
+
+  fecharBusca();
+  
+  // Navegar e baixar se necessário
+  currentBook = livroAlvo;
+  currentChapter = capAlvo;
+  mostrarTela('readScreen');
+  $('bookTitle').textContent = `${livroAlvo.num}. ${livroAlvo.nome}`;
+  
+  if (!livrosSalvos[livroAlvo.id]) {
+    abrirLivro(livroAlvo); // Isso já define o capítulo 1, então corrigimos depois
+    // Forçar o capítulo correto após o download iniciar
+    setTimeout(() => {
+      currentChapter = capAlvo;
+      carregarCapituloSalvo();
+    }, 500);
+  } else {
+    carregarCapituloSalvo();
+  }
+}
+
+// ============================================================
+// 🔤 TAMANHO DA FONTE
+// ============================================================
+function aplicarFontSize() {
+  const container = $('readScreen');
+  container.classList.remove('size-small', 'size-medium', 'size-large');
+  container.classList.add(`size-${fontSize}`);
+  const labels = { small:'Aa (P)', medium:'Aa (M)', large:'Aa (G)' };
+  $('btnFontSize').textContent = labels[fontSize];
+}
+
+$('btnFontSize').onclick = () => {
+  const sizes = ['small', 'medium', 'large'];
+  const idx = sizes.indexOf(fontSize);
+  fontSize = sizes[(idx + 1) % sizes.length];
+  localStorage.setItem('biblia_multiapi_fontsize', fontSize);
+  aplicarFontSize();
+  showToast(`Fonte: ${fontSize === 'small' ? 'Pequena' : fontSize === 'medium' ? 'Média' : 'Grande'}`);
+};
+
+// ============================================================
+// 🎨 TEMA E NAVEGAÇÃO
+// ============================================================
+function mostrarTela(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+  $('infoBar').classList.toggle('hidden', id !== 'booksScreen');
+}
+
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.onclick = () => {
+    currentTestament = tab.dataset.test;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    renderizarLivros();
+  };
+});
+
+$('navBooks').onclick = () => {
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  $('navBooks').classList.add('active');
+  mostrarTela('booksScreen');
+  currentBook = null;
+  resetarStatusApi();
+};
+
+$('navFavorites').onclick = () => {
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  $('navFavorites').classList.add('active');
+  renderizarFavoritos();
+  mostrarTela('favoritesScreen');
+};
+
+$('navAbout').onclick = () => showToast('📖 Bíblia Multi-API\nBusca inteligente, 5 cores de destaque e modo Offline!');
+
+$('btnTheme').onclick = () => {
+  const escuro = document.body.classList.toggle('dark');
+  localStorage.setItem('biblia_multiapi_tema', escuro ? 'dark' : 'light');
+  $('btnTheme').textContent = escuro ? '☀️' : '🌙';
+};
+
+function aplicarTemaSalvo(){
+  if(localStorage.getItem('biblia_multiapi_tema') === 'dark') {
+    document.body.classList.add('dark');
+    $('btnTheme').textContent = '☀️';
+  }
+}
+
+$('btnClear').onclick = () => {
+  if(!Object.keys(livrosSalvos).length && favorites.length === 0 && Object.keys(highlights).length === 0) return showToast('ℹ️ Nada para apagar.');
+  if(confirm('Apagar TODOS os livros, favoritos, destaques e configurações?')) {
+    localStorage.removeItem('biblia_multiapi_livros');
+    localStorage.removeItem('biblia_multiapi_favoritos');
+    localStorage.removeItem('biblia_multiapi_highlights');
+    localStorage.removeItem('biblia_multiapi_fontsize');
+    localStorage.removeItem('biblia_multiapi_tema');
+    livrosSalvos = {}; favorites = []; highlights = {};
+    atualizarContador(); renderizarLivros();
+    showToast('🗑️ Tudo limpo!');
+  }
+};
+
+init();
 </script>
 </body>
 </html>
